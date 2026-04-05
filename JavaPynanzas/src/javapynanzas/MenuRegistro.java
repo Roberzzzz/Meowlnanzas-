@@ -22,7 +22,7 @@ public class MenuRegistro extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (imagen != null) {
-                g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
+                    g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setColor(new Color(0, 0, 0, 200)); 
                 g2d.fillRect(0, 0, getWidth(), getHeight());
@@ -48,7 +48,15 @@ public class MenuRegistro extends JFrame {
         contenedor.add(crearBotonHorizontal("Persona", 30));
         contenedor.add(crearBotonHorizontal("Inscripción", 245));
         contenedor.add(crearBotonHorizontal("Pago", 460));
-        contenedor.add(crearBotonHorizontal("Cursos", 675));
+        JButton btnCursos = (crearBotonHorizontal("Cursos", 675));
+        contenedor.add(btnCursos);
+        btnCursos.addActionListener(e ->{
+            
+            SubMenuCursos ventanaCursos = new SubMenuCursos();
+            ventanaCursos.setLocation(this.getLocation());
+            ventanaCursos.setVisible(true);
+            this.dispose();
+        });
 
         JButton btnVolver = new JButton("← Volver al Menú Principal");
         btnVolver.setBounds(30, 410, 250, 35);
