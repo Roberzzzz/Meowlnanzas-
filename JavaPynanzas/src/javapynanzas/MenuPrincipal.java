@@ -195,7 +195,7 @@ public class MenuPrincipal extends JFrame {
                 clip.loop(Clip.LOOP_CONTINUOUSLY);
 
                 FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                gainControl.setValue(-15.0f); 
+                gainControl.setValue(-8.0f); 
 
                 clip.start();
             } else {
