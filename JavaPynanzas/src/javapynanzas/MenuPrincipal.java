@@ -2,10 +2,57 @@ package javapynanzas;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Path2D;
 import java.io.File;
 import javax.imageio.ImageIO;
+import javax.media.j3d.*;
+import com.sun.j3d.utils.universe.SimpleUniverse;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
+import practicae.PracticaE; 
 
 public class MenuPrincipal extends JFrame {
+
+    private GloboTexto lblGlobo; 
+
+    class GloboTexto extends JLabel {
+        public GloboTexto() {
+            setOpaque(false);
+            setHorizontalAlignment(SwingConstants.CENTER);
+            setFont(new Font("Arial", Font.ITALIC, 14));
+            setForeground(Color.BLACK);
+            setVisible(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            //Cuerpo del globo
+            g2.setColor(new Color(255, 255, 255, 230));
+            g2.fillRoundRect(0, 0, getWidth() - 20, getHeight() - 1, 20, 20);
+            
+            //Punta del globo hacia el Meowl
+            Path2D.Double pointer = new Path2D.Double();
+            pointer.moveTo(getWidth() - 20, 20);   
+            pointer.lineTo(getWidth(), 10);        
+            pointer.lineTo(getWidth() - 20, 40);   
+            pointer.closePath();
+            g2.fill(pointer);
+
+            //Borde gris
+            g2.setColor(new Color(150, 150, 150));
+            g2.drawRoundRect(0, 0, getWidth() - 20, getHeight() - 1, 20, 20);
+            
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
 
     class PanelFondo extends JPanel {
         private Image imagen;
@@ -39,47 +86,88 @@ public class MenuPrincipal extends JFrame {
 
         PanelFondo contenedor = new PanelFondo();
         
-        JLabel lblTitulo = new JLabel("PANEL DE CONTROL", SwingConstants.CENTER);
+        //Título
+        JLabel lblTitulo = new JLabel("PANEL DE CONTROL");
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 28));
         lblTitulo.setForeground(Color.WHITE);
-        lblTitulo.setBounds(0, 30, 800, 40);
+        lblTitulo.setBounds(50, 40, 400, 40); 
         contenedor.add(lblTitulo);
 
-        JButton btnRegistro = new JButton("REGISTRO");
-        btnRegistro.setBounds(100, 200, 280, 180); 
-        estilizarBotonConIcono(btnRegistro, "registro_icon.png");
-        
-        btnRegistro.addActionListener(e -> {
+        //Globo de texto
+        lblGlobo = new GloboTexto();
+        lblGlobo.setBounds(60, 110, 420, 85); 
+        contenedor.add(lblGlobo);
 
-            MenuRegistro opciones = new MenuRegistro();
-            
-            opciones.setLocation(this.getLocation()); 
-            
-            opciones.setVisible(true);
+        //Java 3D de Meowl
+        GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
+        Canvas3D canvas3D = new Canvas3D(config);
+        canvas3D.setBounds(450, 20, 300, 250); 
+        contenedor.add(canvas3D);
+
+        SimpleUniverse universo = new SimpleUniverse(canvas3D);
+        universo.getViewingPlatform().setNominalViewingTransform();
+        PracticaE meowl3D = new PracticaE();
+        BranchGroup escena = meowl3D.createSceneGraph();
+        universo.addBranchGraph(escena);
+
+        //Botón Registro
+        JButton btnRegistro = new JButton("REGISTRO");
+        btnRegistro.setBounds(100, 280, 280, 160); 
+        estilizarBotonConIcono(btnRegistro, "registro_icon.png");
+
+        btnRegistro.addActionListener(e -> {
+            MenuRegistro ventanaRegistro = new MenuRegistro();
+            ventanaRegistro.setLocation(this.getLocation()); 
+            ventanaRegistro.setVisible(true);
             this.dispose(); 
         });
         
+        btnRegistro.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                mostrarMensaje("Aquí puedes gestionar las inscripciones, pagos y cursos :3");
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                lblGlobo.setVisible(false);
+            }
+        });
         contenedor.add(btnRegistro);
 
+        //Botón Consultas
         JButton btnConsultas = new JButton("CONSULTAS");
-        btnConsultas.setBounds(420, 200, 280, 180);
+        btnConsultas.setBounds(420, 280, 280, 160);
         estilizarBotonConIcono(btnConsultas, "consulta_icon.png");
+        
+        btnConsultas.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                mostrarMensaje("Aquí puedes consultar la solvencia de los estudiantes");
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                lblGlobo.setVisible(false);
+            }
+        });
         contenedor.add(btnConsultas);
 
+        //Botón Salir
         JButton btnSalir = new JButton("CERRAR SESIÓN");
         btnSalir.setBounds(325, 500, 150, 30);
         btnSalir.setBackground(new Color(150, 0, 0, 100));
         btnSalir.setForeground(Color.WHITE);
-        btnSalir.setFocusPainted(false);
-        btnSalir.addActionListener(e -> {
-            JavaPynanzas login = new JavaPynanzas();
-            login.setLocation(this.getLocation());
-            login.setVisible(true);
-            this.dispose();
-        });
+        btnSalir.addActionListener(e -> System.exit(0));
         contenedor.add(btnSalir);
 
         add(contenedor);
+
+        reproducirMusica("meowl_music.wav"); 
+    }
+
+    private void mostrarMensaje(String texto) {
+        //SABIAN QUE SE PUEDE USAR HTML COMO FUENTE DE TEXTO? XD
+        lblGlobo.setText("<html><div style='padding-right: 25px; text-align: center;'>" + texto + "</div></html>");
+        lblGlobo.setVisible(true);
     }
 
     private void estilizarBotonConIcono(JButton btn, String rutaIcono) {
@@ -87,18 +175,34 @@ public class MenuPrincipal extends JFrame {
             ImageIcon iconoOriginal = new ImageIcon("resources/" + rutaIcono);
             Image imgEscalada = iconoOriginal.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
             btn.setIcon(new ImageIcon(imgEscalada));
-        } catch (Exception e) {
-            System.out.println("No se pudo cargar el icono: " + rutaIcono);
-        }
-
+        } catch (Exception e) {}
         btn.setBackground(new Color(20, 20, 20, 200));
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Arial", Font.BOLD, 18));
         btn.setVerticalTextPosition(SwingConstants.BOTTOM);
         btn.setHorizontalTextPosition(SwingConstants.CENTER);
-        btn.setIconTextGap(10); 
         btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100), 1));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    }
+    
+    private void reproducirMusica(String ruta) {
+        try {
+            File archivoMusica = new File("resources/" + ruta);
+            if (archivoMusica.exists()) {
+                AudioInputStream audioStream = AudioSystem.getAudioInputStream(archivoMusica);
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioStream);
+                clip.loop(Clip.LOOP_CONTINUOUSLY);
+
+                FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                gainControl.setValue(-15.0f); 
+
+                clip.start();
+            } else {
+                System.out.println("No se encontró el archivo de audio: " + ruta);
+            }
+        } catch (Exception e) {
+            System.out.println("Error al reproducir audio: " + e.getMessage());
+        }
     }
 }

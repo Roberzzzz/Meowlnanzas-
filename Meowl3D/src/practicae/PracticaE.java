@@ -308,13 +308,15 @@ public class PracticaE extends JPanel implements ItemListener {
         DirectionalLight luzDir = new DirectionalLight(new Color3f(Color.WHITE), new Vector3f(0f, -1f, -1f));
         luzDir.setInfluencingBounds(bounds);
         root.addChild(luzDir);
-
+        
+        /*
         // ROTACIÓN
         rotarAlpha = new Alpha(-1, 4000);
         Transform3D eje = new Transform3D();
         rotador = new RotationInterpolator(rotarAlpha, mainTG, eje, 0f, (float)(2*Math.PI));
         rotador.setSchedulingBounds(bounds);
         mainTG.addChild(rotador);
+        */
 
         return root;
     }
