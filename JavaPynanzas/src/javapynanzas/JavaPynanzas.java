@@ -137,29 +137,41 @@ public class JavaPynanzas extends JFrame {
         if (con != null) {
             try {
                 java.sql.Statement st = con.createStatement();
-
                 String sql = "SELECT * FROM Usuarios WHERE username = '" + user + "' AND password_ = '" + pass + "'";
-
                 java.sql.ResultSet rs = st.executeQuery(sql);
 
                 if (rs.next()) {
-
-                    JOptionPane.showMessageDialog(null, "Usuario correcto. Iniciando sesión...");
+                    ImageIcon iconoMeowl = cargarIcono("meowl_icon_aprobado.png", 50, 50);
+                    JOptionPane.showMessageDialog(
+                        this, 
+                        "¡Usuario correcto! Iniciando sesión...", 
+                        "Bienvenido a Meowlnanzas", 
+                        JOptionPane.PLAIN_MESSAGE, 
+                        iconoMeowl
+                    );
 
                     MenuPrincipal menu = new MenuPrincipal();
                     menu.setVisible(true);
-
                     this.dispose(); 
 
                 } else {
                     lblMensaje.setText("Usuario o contraseña incorrectos.");
                 }
-
                 con.close();
-
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());
             }
+        }
+    }
+   
+   private ImageIcon cargarIcono(String nombreArchivo, int ancho, int alto) {
+        try {
+            ImageIcon iconoOriginal = new ImageIcon("resources/" + nombreArchivo);
+            Image imgEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
+            return new ImageIcon(imgEscalada);
+        } catch (Exception e) {
+            System.err.println("No se pudo cargar el icono: " + nombreArchivo);
+            return null;
         }
     }
 
