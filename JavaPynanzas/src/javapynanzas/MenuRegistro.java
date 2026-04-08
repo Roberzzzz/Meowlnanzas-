@@ -32,7 +32,7 @@ public class MenuRegistro extends JFrame {
 
     public MenuRegistro() {
         setTitle("Pynanzas - Registro");
-        setSize(900, 500); 
+        setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
         setLocationRelativeTo(null);
         setResizable(false);
