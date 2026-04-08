@@ -16,7 +16,8 @@ import javax.sound.sampled.FloatControl;
 import practicae.PracticaE; 
 
 public class MenuPrincipal extends JFrame {
-
+    
+    private static Clip musicaClip;
     private GloboTexto lblGlobo; 
 
     class GloboTexto extends JLabel {
@@ -134,10 +135,16 @@ public class MenuPrincipal extends JFrame {
         });
         contenedor.add(btnRegistro);
 
-        //Botón Consultas
         JButton btnConsultas = new JButton("CONSULTAS");
         btnConsultas.setBounds(420, 280, 280, 160);
         estilizarBotonConIcono(btnConsultas, "consulta_icon.png");
+        
+        btnConsultas.addActionListener(e -> {
+            MenuConsultas ventanaConsultas = new MenuConsultas();
+            ventanaConsultas.setLocation(this.getLocation());
+            ventanaConsultas.setVisible(true);
+            this.dispose(); 
+        });
         
         btnConsultas.addMouseListener(new MouseAdapter() {
             @Override
@@ -186,18 +193,24 @@ public class MenuPrincipal extends JFrame {
     }
     
     private void reproducirMusica(String ruta) {
+        //Pa que no se repita varias veces
+        if (musicaClip != null && musicaClip.isRunning()) {
+            return;
+        }
+
         try {
             File archivoMusica = new File("resources/" + ruta);
             if (archivoMusica.exists()) {
                 AudioInputStream audioStream = AudioSystem.getAudioInputStream(archivoMusica);
-                Clip clip = AudioSystem.getClip();
-                clip.open(audioStream);
-                clip.loop(Clip.LOOP_CONTINUOUSLY);
 
-                FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                musicaClip = AudioSystem.getClip();
+                musicaClip.open(audioStream);
+                musicaClip.loop(Clip.LOOP_CONTINUOUSLY);
+
+                FloatControl gainControl = (FloatControl) musicaClip.getControl(FloatControl.Type.MASTER_GAIN);
                 gainControl.setValue(-8.0f); 
 
-                clip.start();
+                musicaClip.start();
             } else {
                 System.out.println("No se encontró el archivo de audio: " + ruta);
             }
