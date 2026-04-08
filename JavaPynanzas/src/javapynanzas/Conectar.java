@@ -12,10 +12,7 @@ public class Conectar {
         Connection con = null;
         try{
             Class.forName("cdata.jdbc.postgresql.PostgreSQLDriver");
-            con = DriverManager.getConnection(URL, USER, CLAVE);          
-        JOptionPane.showMessageDialog(null,"Conexion establecida");
-        
-        
+            con = DriverManager.getConnection(URL, USER, CLAVE);             
         }catch(Exception e){
             System.out.println("Error: " + e.getMessage());
         }
