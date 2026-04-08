@@ -2,6 +2,8 @@ package javapynanzas;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import javax.imageio.ImageIO;
 
@@ -22,7 +24,7 @@ public class MenuRegistro extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (imagen != null) {
-                    g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
+                g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setColor(new Color(0, 0, 0, 200)); 
                 g2d.fillRect(0, 0, getWidth(), getHeight());
@@ -39,63 +41,78 @@ public class MenuRegistro extends JFrame {
 
         PanelFondo contenedor = new PanelFondo();
 
-        JLabel lblTitulo = new JLabel("Menú de Registro", SwingConstants.CENTER);
+        JLabel lblTitulo = new JLabel("MENÚ DE REGISTRO", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 32));
         lblTitulo.setForeground(Color.WHITE);
-        lblTitulo.setBounds(0, 40, 900, 45);
+        lblTitulo.setBounds(0, 60, 800, 45); 
         contenedor.add(lblTitulo);
 
-        JButton btnPersona = crearBotonHorizontal("Persona", 30);
-        contenedor.add(btnPersona);
-        btnPersona.addActionListener(e ->{
+        int yBotones = 220;
+        int anchoBtn = 170;
+        int altoBtn = 80;  
+
+        JButton btnPersona = crearBotonHorizontal("Persona", 40, yBotones, anchoBtn, altoBtn);
+        btnPersona.addActionListener(e -> {
             SubMenuPersonas ventanaPersonitas = new SubMenuPersonas();
             ventanaPersonitas.setLocation(this.getLocation());
             ventanaPersonitas.setVisible(true);
             this.dispose();
         });
+        contenedor.add(btnPersona);
+
+        contenedor.add(crearBotonHorizontal("Inscripción", 230, yBotones, anchoBtn, altoBtn));
+        contenedor.add(crearBotonHorizontal("Pago", 420, yBotones, anchoBtn, altoBtn));
         
-        contenedor.add(crearBotonHorizontal("Inscripción", 245));
-        contenedor.add(crearBotonHorizontal("Pago", 460));
-        JButton btnCursos = (crearBotonHorizontal("Cursos", 675));
-        contenedor.add(btnCursos);
-        btnCursos.addActionListener(e ->{
-            
+        JButton btnCursos = crearBotonHorizontal("Cursos", 610, yBotones, anchoBtn, altoBtn);
+        btnCursos.addActionListener(e -> {
             SubMenuCursos ventanaCursos = new SubMenuCursos();
             ventanaCursos.setLocation(this.getLocation());
             ventanaCursos.setVisible(true);
             this.dispose();
         });
+        contenedor.add(btnCursos);
 
         JButton btnVolver = new JButton("← Volver al Menú Principal");
-        btnVolver.setBounds(30, 410, 250, 35);
-        btnVolver.setBackground(new Color(40, 40, 40));
+        btnVolver.setBounds(275, 450, 250, 45); // Centrado manualmente (800-250)/2 = 275
+        btnVolver.setBackground(new Color(45, 45, 45));
         btnVolver.setForeground(Color.WHITE);
+        btnVolver.setFont(new Font("Arial", Font.PLAIN, 14));
         btnVolver.setFocusPainted(false);
         btnVolver.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
+        btnVolver.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         btnVolver.addActionListener(e -> {
             MenuPrincipal principal = new MenuPrincipal();
-            
             principal.setLocation(this.getLocation());
-            
             principal.setVisible(true);
             this.dispose(); 
         });
-        
         contenedor.add(btnVolver);
 
         add(contenedor);
     }
 
-    private JButton crearBotonHorizontal(String texto, int x) {
+    private JButton crearBotonHorizontal(String texto, int x, int y, int ancho, int alto) {
         JButton btn = new JButton(texto);
-        btn.setBounds(x, 180, 190, 60); 
-        btn.setBackground(new Color(60, 60, 60));
+        btn.setBounds(x, y, ancho, alto); 
+        btn.setBackground(new Color(60, 60, 60, 180));
         btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Arial", Font.BOLD, 16));
+        btn.setFont(new Font("Arial", Font.BOLD, 17));
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100), 1));
+        btn.setBorder(BorderFactory.createLineBorder(new Color(120, 120, 120), 1));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        btn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(new Color(80, 80, 80));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(new Color(60, 60, 60, 180));
+            }
+        });
+
         return btn;
     }
 }
