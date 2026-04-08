@@ -1,28 +1,69 @@
 package javapynanzas;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.io.File;
+import javax.imageio.ImageIO;
 
 public class SubMenuPersonas extends JFrame {
 
-    private JPanel panelPrincipal;
+    private JPanel panelPrincipal; 
     private JTextField txtNombre, txtSegundoNombre, txtApellido, txtSegundoApellido;
     private JTextField txtCedula, txtDireccion, txtTelefono, txtEmail;
     private JComboBox<String> comboGenero;
     
     private JLabel errNombre, errSegundoNombre, errApellido, errSegundoApellido, errCedula, errDireccion, errTelefono, errEmail;
 
+    class PanelFondo extends JPanel {
+        private Image imagen;
+        public PanelFondo() {
+            try {
+                imagen = ImageIO.read(new File("resources/meowl_login.jpg"));
+            } catch (Exception e) {
+                setBackground(new Color(30, 30, 30));
+            }
+            setLayout(new BorderLayout()); 
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (imagen != null) {
+                g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(new Color(0, 0, 0, 170)); 
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        }
+    }
+
     public SubMenuPersonas() {
         setTitle("Pynanzas - Gestión de Personas");
-        setSize(500, 950);
+        setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-        
+
+        PanelFondo contenedorFondo = new PanelFondo();
+        setContentPane(contenedorFondo);
+
         panelPrincipal = new JPanel();
         panelPrincipal.setLayout(null);
-        panelPrincipal.setBackground(new Color(30, 30, 30));
-        add(panelPrincipal);
+        panelPrincipal.setBackground(new Color(30, 30, 30, 210)); 
+
+        JPanel contenedorCentrado = new JPanel(new GridBagLayout());
+        contenedorCentrado.setOpaque(false);
+        contenedorCentrado.add(panelPrincipal);
+
+        JScrollPane scrollPane = new JScrollPane(contenedorCentrado);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
+        contenedorFondo.add(scrollPane, BorderLayout.CENTER);
 
         inicializarCampos();
         crearFormulario();
@@ -41,7 +82,6 @@ public class SubMenuPersonas extends JFrame {
         int y = 40;
         int x = 80;
 
-    
         JButton btnVolver = new JButton("<-");
         btnVolver.setBounds(15, 15, 45, 30);
         btnVolver.setBackground(new Color(60, 60, 60));
@@ -59,32 +99,31 @@ public class SubMenuPersonas extends JFrame {
         panelPrincipal.add(lblHeader);
 
         y += 60;
+        errNombre = crearEtiquetaError(y + 35);
+        AggCAP(txtNombre, "Primer Nombre (Ej: Ana)", y, errNombre); y += 85;
 
-        AggCAP(txtNombre, "Primer Nombre (Ej: Ana)", y); y += 35;
-        errNombre = crearEtiquetaError(y); y += 50;
+        errSegundoNombre = crearEtiquetaError(y + 35);
+        AggCAP(txtSegundoNombre, "Segundo Nombre (Ej: María)", y, errSegundoNombre); y += 85;
 
-        AggCAP(txtSegundoNombre, "Segundo Nombre (Ej: María)", y); y += 35;
-        errSegundoNombre = crearEtiquetaError(y); y += 50;
+        errApellido = crearEtiquetaError(y + 35);
+        AggCAP(txtApellido, "Primer Apellido (Ej: Gómez)", y, errApellido); y += 85;
 
-        AggCAP(txtApellido, "Primer Apellido (Ej: Gómez)", y); y += 35;
-        errApellido = crearEtiquetaError(y); y += 50;
+        errSegundoApellido = crearEtiquetaError(y + 35);
+        AggCAP(txtSegundoApellido, "Segundo Apellido (Ej: Martínez)", y, errSegundoApellido); y += 85;
 
-        AggCAP(txtSegundoApellido, "Segundo Apellido (Ej: Martínez)", y); y += 35;
-        errSegundoApellido = crearEtiquetaError(y); y += 50;
+        errCedula = crearEtiquetaError(y + 35);
+        AggCAP(txtCedula, "Cédula (Ej: 31133492)", y, errCedula); y += 85;
 
-        AggCAP(txtCedula, "Cédula (Ej: 31145234)", y); y += 35;
-        errCedula = crearEtiquetaError(y); y += 50;
+        errDireccion = crearEtiquetaError(y + 35);
+        AggCAP(txtDireccion, "Dirección (Ej: Av.Principal #12)", y, errDireccion); y += 85;
 
-        AggCAP(txtDireccion, "Dirección (Ej: Av. Principal #12)", y); y += 35;
-        errDireccion = crearEtiquetaError(y); y += 50;
+        errTelefono = crearEtiquetaError(y + 35);
+        AggCAP(txtTelefono, "Teléfono (Ej: 04128543219)", y, errTelefono); y += 85;
 
-        AggCAP(txtTelefono, "Teléfono (Ej: 04123426565)", y); y += 35;
-        errTelefono = crearEtiquetaError(y); y += 50;
+        errEmail = crearEtiquetaError(y + 35);
+        AggCAP(txtEmail, "Correo Electrónico (Ej: anitalahuerfanita@gmail.com)", y, errEmail); y += 55;
 
-        AggCAP(txtEmail, "Correo Electrónico (Ej: anitalahuerfanita@gmail.com)", y); y += 35;
-        errEmail = crearEtiquetaError(y); y += 20;
-
-        JLabel lblGen = new JLabel("Género:", SwingConstants.LEFT);
+        JLabel lblGen = new JLabel("Género:");
         lblGen.setForeground(new Color(150, 150, 150));
         lblGen.setBounds(x, y, 100, 25);
         panelPrincipal.add(lblGen);
@@ -94,8 +133,7 @@ public class SubMenuPersonas extends JFrame {
         comboGenero.setForeground(Color.WHITE);
         panelPrincipal.add(comboGenero);
 
-        y += 40;
-
+        y += 60;
         JButton btnRegistrar = new JButton("Registrar Persona");
         btnRegistrar.setBounds(140, y, 220, 45);
         btnRegistrar.setBackground(new Color(34, 139, 34));
@@ -104,8 +142,40 @@ public class SubMenuPersonas extends JFrame {
         btnRegistrar.addActionListener(e -> validarYRegistrar());
         panelPrincipal.add(btnRegistrar);
 
+        y += 80; 
+        panelPrincipal.setPreferredSize(new Dimension(500, y));
         panelPrincipal.revalidate();
         panelPrincipal.repaint();
+    }
+
+    private void AggCAP(JTextField txt, String hint, int y, JLabel lblError) {
+        JLabel lbl = new JLabel(hint);
+        lbl.setForeground(new Color(180, 180, 180));
+        lbl.setBounds(80, y - 25, 340, 20);
+        panelPrincipal.add(lbl);
+
+        txt.setBounds(80, y, 340, 35);
+        txt.setBackground(new Color(45, 45, 45));
+        txt.setForeground(Color.WHITE);
+        txt.setCaretColor(Color.WHITE);
+        txt.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
+        
+        txt.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { lblError.setText(""); }
+            public void removeUpdate(DocumentEvent e) { lblError.setText(""); }
+            public void changedUpdate(DocumentEvent e) { lblError.setText(""); }
+        });
+        
+        panelPrincipal.add(txt);
+    }
+
+    private JLabel crearEtiquetaError(int y) {
+        JLabel lbl = new JLabel("");
+        lbl.setForeground(new Color(255, 100, 100));
+        lbl.setFont(new Font("Arial", Font.ITALIC, 11));
+        lbl.setBounds(80, y - 5, 340, 20);
+        panelPrincipal.add(lbl);
+        return lbl;
     }
 
     private void mostrarConfirmacion() {
@@ -141,12 +211,12 @@ public class SubMenuPersonas extends JFrame {
         }
 
         y += 20;
-        JButton btnVolver = new JButton("Volver a editar");
-        btnVolver.setBounds(50, y, 180, 45);
-        btnVolver.setBackground(new Color(80, 80, 80));
-        btnVolver.setForeground(Color.WHITE);
-        btnVolver.addActionListener(e -> crearFormulario());
-        panelPrincipal.add(btnVolver);
+        JButton btnVolverEdit = new JButton("Volver a editar");
+        btnVolverEdit.setBounds(50, y, 180, 45);
+        btnVolverEdit.setBackground(new Color(80, 80, 80));
+        btnVolverEdit.setForeground(Color.WHITE);
+        btnVolverEdit.addActionListener(e -> crearFormulario());
+        panelPrincipal.add(btnVolverEdit);
 
         JButton btnConfirmar = new JButton("Confirmar Registro");
         btnConfirmar.setBounds(250, y, 200, 45);
@@ -155,31 +225,10 @@ public class SubMenuPersonas extends JFrame {
         btnConfirmar.addActionListener(e -> guardarPersona());
         panelPrincipal.add(btnConfirmar);
 
+        y += 80;
+        panelPrincipal.setPreferredSize(new Dimension(500, y));
         panelPrincipal.revalidate();
         panelPrincipal.repaint();
-    }
-
-    private void AggCAP(JTextField txt, String hint, int y) {
-        JLabel lbl = new JLabel(hint);
-        lbl.setForeground(new Color(180, 180, 180));
-        lbl.setBounds(80, y - 25, 340, 20);
-        panelPrincipal.add(lbl);
-
-        txt.setBounds(80, y, 340, 35);
-        txt.setBackground(new Color(45, 45, 45));
-        txt.setForeground(Color.WHITE);
-        txt.setCaretColor(Color.WHITE);
-        txt.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
-        panelPrincipal.add(txt);
-    }
-
-    private JLabel crearEtiquetaError(int y) {
-        JLabel lbl = new JLabel("");
-        lbl.setForeground(new Color(255, 100, 100));
-        lbl.setFont(new Font("Arial", Font.ITALIC, 11));
-        lbl.setBounds(80, y - 5, 340, 20);
-        panelPrincipal.add(lbl);
-        return lbl;
     }
 
     private void validarYRegistrar() {
@@ -188,14 +237,30 @@ public class SubMenuPersonas extends JFrame {
         errTelefono.setText(""); errEmail.setText("");
 
         boolean ok = true;
-        if (txtNombre.getText().trim().length() < 2 || !txtNombre.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errNombre.setText("Mínimo 2 letras alfabéticas."); ok = false; }
-        if (txtSegundoNombre.getText().trim().length() < 2 || !txtSegundoNombre.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errSegundoNombre.setText("Mínimo 2 letras alfabéticas."); ok = false; }
-        if (txtApellido.getText().trim().length() < 2 || !txtApellido.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errApellido.setText("Mínimo 2 letras alfabéticas."); ok = false; }
-        if (txtSegundoApellido.getText().trim().length() < 2 || !txtSegundoApellido.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errSegundoApellido.setText("Mínimo 2 letras alfabéticas."); ok = false; }
-        if (!txtCedula.getText().matches("\\d{5,10}")) { errCedula.setText("Cédula inválida (5-10 dígitos)."); ok = false; }
-        if (txtDireccion.getText().trim().isEmpty()) { errDireccion.setText("La dirección no puede estar vacía."); ok = false; }
-        if (!txtTelefono.getText().matches("(\\+?\\d{10,15}|0\\d{9,14})")) { errTelefono.setText("Formato inválido."); ok = false; }
-        if (!txtEmail.getText().matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")) { errEmail.setText("Email inválido."); ok = false; }
+        String obligatorio = "Este campo es obligatorio";
+        //validaciones
+        if (txtNombre.getText().trim().isEmpty()) { errNombre.setText(obligatorio); ok = false; }
+        else if (txtNombre.getText().trim().length() < 2 || !txtNombre.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errNombre.setText("Mínimo 2 caracteres únicamente alfabeticos."); ok = false; }
+
+        if (txtSegundoNombre.getText().trim().isEmpty()) { errSegundoNombre.setText(obligatorio); ok = false; }
+        else if (txtSegundoNombre.getText().trim().length() < 2 || !txtSegundoNombre.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errSegundoNombre.setText("Mínimo 2 caracteres únicamente alfabeticos."); ok = false; }
+
+        if (txtApellido.getText().trim().isEmpty()) { errApellido.setText(obligatorio); ok = false; }
+        else if (txtApellido.getText().trim().length() < 2 || !txtApellido.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errApellido.setText("Mínimo 2 caracteres únicamente alfabeticos."); ok = false; }
+
+        if (txtSegundoApellido.getText().trim().isEmpty()) { errSegundoApellido.setText(obligatorio); ok = false; }
+        else if (txtSegundoApellido.getText().trim().length() < 2 || !txtSegundoApellido.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errSegundoApellido.setText("Mínimo 2 caracteres únicamente alfabeticos."); ok = false; }
+
+        if (txtCedula.getText().trim().isEmpty()) { errCedula.setText(obligatorio); ok = false; }
+        else if (!txtCedula.getText().matches("\\d{5,10}")) { errCedula.setText("Cédula inválida (5-10 dígitos)."); ok = false; }
+
+        if (txtDireccion.getText().trim().isEmpty()) { errDireccion.setText(obligatorio); ok = false; }
+
+        if (txtTelefono.getText().trim().isEmpty()) { errTelefono.setText(obligatorio); ok = false; }
+        else if (!txtTelefono.getText().matches("(\\+?\\d{10,15}|0\\d{9,14})")) { errTelefono.setText("Formato inválido."); ok = false; }
+        
+        if (txtEmail.getText().trim().isEmpty()) { errEmail.setText(obligatorio); ok = false; }
+        else if (!txtEmail.getText().matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+")) { errEmail.setText("Email inválido."); ok = false; }
 
         if (ok) {
             mostrarConfirmacion();
@@ -205,10 +270,8 @@ public class SubMenuPersonas extends JFrame {
     private void guardarPersona() {
         Conectar conecta = new Conectar();
         String sql = "INSERT INTO personas (nombre, segundo_nombre, apellido, segundo_apellido, cedula, direccion, genero, telefono, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
         try (java.sql.Connection con = conecta.getConexion();
              java.sql.PreparedStatement pst = con.prepareStatement(sql)) {
-
             pst.setString(1, txtNombre.getText().trim());
             pst.setString(2, txtSegundoNombre.getText().trim());
             pst.setString(3, txtApellido.getText().trim());
@@ -218,10 +281,11 @@ public class SubMenuPersonas extends JFrame {
             pst.setString(7, (String) comboGenero.getSelectedItem());
             pst.setString(8, txtTelefono.getText().trim());
             pst.setString(9, txtEmail.getText().trim());
-
             int res = pst.executeUpdate();
+            
             if (res > 0) {
-                JOptionPane.showMessageDialog(this, "Persona registrada exitosamente");
+                ImageIcon iconoMeowlz = cargarIcono("meowl_icon_aprobado.png", 50, 50);
+                JOptionPane.showMessageDialog(this, "¡PERSONA REGISTRADA EXITOSAMENTE!"," Registro Aprobado",JOptionPane.PLAIN_MESSAGE, iconoMeowlz);
                 this.dispose();
                 new MenuRegistro().setVisible(true);
             }
@@ -229,4 +293,15 @@ public class SubMenuPersonas extends JFrame {
             JOptionPane.showMessageDialog(this, "Error de Base de Datos: " + e.getMessage());
         }
     }
+    private ImageIcon cargarIcono(String nombreArchivo, int ancho, int alto) {
+        try {
+            ImageIcon iconoOriginal = new ImageIcon("resources/" + nombreArchivo);
+            Image imgEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
+            return new ImageIcon(imgEscalada);
+        } catch (Exception e) {
+            System.err.println("No se pudo cargar el icono: " + nombreArchivo);
+            return null;
+        }
+    }
 }
+    
