@@ -238,18 +238,18 @@ public class SubMenuPersonas extends JFrame {
 
         boolean ok = true;
         String obligatorio = "Este campo es obligatorio";
-        //validaciones
+        
         if (txtNombre.getText().trim().isEmpty()) { errNombre.setText(obligatorio); ok = false; }
-        else if (txtNombre.getText().trim().length() < 2 || !txtNombre.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errNombre.setText("Mínimo 2 caracteres únicamente alfabeticos."); ok = false; }
+        else if (txtNombre.getText().trim().length() < 2 || !txtNombre.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errNombre.setText("Mínimo 2 caracteres únicamente alfabéticos."); ok = false; }
 
         if (txtSegundoNombre.getText().trim().isEmpty()) { errSegundoNombre.setText(obligatorio); ok = false; }
-        else if (txtSegundoNombre.getText().trim().length() < 2 || !txtSegundoNombre.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errSegundoNombre.setText("Mínimo 2 caracteres únicamente alfabeticos."); ok = false; }
+        else if (txtSegundoNombre.getText().trim().length() < 2 || !txtSegundoNombre.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errSegundoNombre.setText("Mínimo 2 caracteres únicamente alfabéticos."); ok = false; }
 
         if (txtApellido.getText().trim().isEmpty()) { errApellido.setText(obligatorio); ok = false; }
-        else if (txtApellido.getText().trim().length() < 2 || !txtApellido.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errApellido.setText("Mínimo 2 caracteres únicamente alfabeticos."); ok = false; }
+        else if (txtApellido.getText().trim().length() < 2 || !txtApellido.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errApellido.setText("Mínimo 2 caracteres únicamente alfabéticos."); ok = false; }
 
         if (txtSegundoApellido.getText().trim().isEmpty()) { errSegundoApellido.setText(obligatorio); ok = false; }
-        else if (txtSegundoApellido.getText().trim().length() < 2 || !txtSegundoApellido.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errSegundoApellido.setText("Mínimo 2 caracteres únicamente alfabeticos."); ok = false; }
+        else if (txtSegundoApellido.getText().trim().length() < 2 || !txtSegundoApellido.getText().matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) { errSegundoApellido.setText("Mínimo 2 caracteres únicamente alfabéticos."); ok = false; }
 
         if (txtCedula.getText().trim().isEmpty()) { errCedula.setText(obligatorio); ok = false; }
         else if (!txtCedula.getText().matches("\\d{5,10}")) { errCedula.setText("Cédula inválida (5-10 dígitos)."); ok = false; }
@@ -269,30 +269,61 @@ public class SubMenuPersonas extends JFrame {
 
     private void guardarPersona() {
         Conectar conecta = new Conectar();
-        String sql = "INSERT INTO personas (nombre, segundo_nombre, apellido, segundo_apellido, cedula, direccion, genero, telefono, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (java.sql.Connection con = conecta.getConexion();
-             java.sql.PreparedStatement pst = con.prepareStatement(sql)) {
-            pst.setString(1, txtNombre.getText().trim());
-            pst.setString(2, txtSegundoNombre.getText().trim());
-            pst.setString(3, txtApellido.getText().trim());
-            pst.setString(4, txtSegundoApellido.getText().trim());
-            pst.setString(5, txtCedula.getText().trim());
-            pst.setString(6, txtDireccion.getText().trim());
-            pst.setString(7, (String) comboGenero.getSelectedItem());
-            pst.setString(8, txtTelefono.getText().trim());
-            pst.setString(9, txtEmail.getText().trim());
-            int res = pst.executeUpdate();
-            
-            if (res > 0) {
-                ImageIcon iconoMeowlz = cargarIcono("meowl_icon_aprobado.png", 50, 50);
-                JOptionPane.showMessageDialog(this, "¡PERSONA REGISTRADA EXITOSAMENTE!"," Registro Aprobado",JOptionPane.PLAIN_MESSAGE, iconoMeowlz);
-                this.dispose();
-                new MenuRegistro().setVisible(true);
+        
+        String sqlCheck = "SELECT cedula, email, telefono FROM personas WHERE cedula = ? OR email = ? OR telefono = ?";
+        String sqlInsert = "INSERT INTO personas (nombre, segundo_nombre, apellido, segundo_apellido, cedula, direccion, genero, telefono, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try (java.sql.Connection con = conecta.getConexion()) {
+
+            try (java.sql.PreparedStatement pstCheck = con.prepareStatement(sqlCheck)) {
+                String cedulaTxt = txtCedula.getText().trim();
+                String emailTxt = txtEmail.getText().trim();
+                String tlfTxt = txtTelefono.getText().trim();
+                
+                pstCheck.setString(1, cedulaTxt);
+                pstCheck.setString(2, emailTxt);
+                pstCheck.setString(3, tlfTxt);
+                
+                java.sql.ResultSet rs = pstCheck.executeQuery();
+                
+                if (rs.next()) {
+                    String duplicado = "";
+                    if (rs.getString("cedula").equals(cedulaTxt)) duplicado = "La Cédula";
+                    else if (rs.getString("email").equalsIgnoreCase(emailTxt)) duplicado = "El Correo";
+                    else if (rs.getString("telefono").equals(tlfTxt)) duplicado = "El Teléfono";
+
+                    ImageIcon iconoError = cargarIcono("meowl_icon_error.png", 50, 50);
+                    JOptionPane.showMessageDialog(this, "¡REGISTRO DENEGADO!\n" + duplicado + " ya existe.", "Estado del Registro", JOptionPane.PLAIN_MESSAGE, iconoError);
+                    return; 
+                }
             }
+
+            try (java.sql.PreparedStatement pst = con.prepareStatement(sqlInsert)) {
+                pst.setString(1, txtNombre.getText().trim());
+                pst.setString(2, txtSegundoNombre.getText().trim());
+                pst.setString(3, txtApellido.getText().trim());
+                pst.setString(4, txtSegundoApellido.getText().trim());
+                pst.setString(5, txtCedula.getText().trim());
+                pst.setString(6, txtDireccion.getText().trim());
+                pst.setString(7, (String) comboGenero.getSelectedItem());
+                pst.setString(8, txtTelefono.getText().trim());
+                pst.setString(9, txtEmail.getText().trim());
+                
+                int res = pst.executeUpdate();
+                
+                if (res > 0) {
+                    ImageIcon iconoMeowlz = cargarIcono("meowl_icon_aprobado.png", 50, 50);
+                    JOptionPane.showMessageDialog(this, "¡PERSONA REGISTRADA EXITOSAMENTE!", "Estado del Registro", JOptionPane.PLAIN_MESSAGE, iconoMeowlz);
+                    this.dispose();
+                    new MenuRegistro().setVisible(true);
+                }
+            }
+            
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error de Base de Datos: " + e.getMessage());
         }
     }
+
     private ImageIcon cargarIcono(String nombreArchivo, int ancho, int alto) {
         try {
             ImageIcon iconoOriginal = new ImageIcon("resources/" + nombreArchivo);
@@ -304,4 +335,3 @@ public class SubMenuPersonas extends JFrame {
         }
     }
 }
-    

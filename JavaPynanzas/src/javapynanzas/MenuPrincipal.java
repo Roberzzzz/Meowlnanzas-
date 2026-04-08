@@ -144,7 +144,7 @@ public class MenuPrincipal extends JFrame {
             ventanaConsultas.setLocation(this.getLocation());
             ventanaConsultas.setVisible(true);
             this.dispose(); 
-        });
+        }); 
         
         btnConsultas.addMouseListener(new MouseAdapter() {
             @Override
