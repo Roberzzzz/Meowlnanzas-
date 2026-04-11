@@ -11,8 +11,8 @@ public class Conectar {
     public Connection getConexion(){
         Connection con = null;
         try{
-            Class.forName("org.postgresql.Driver");
-            //Class.forName("cdata.jdbc.postgresql.PostgreSQLDriver");
+            //Class.forName("org.postgresql.Driver");
+            Class.forName("cdata.jdbc.postgresql.PostgreSQLDriver");
             con = DriverManager.getConnection(URL, USER, CLAVE);             
         }catch(Exception e){
             System.out.println("Error: " + e.getMessage());
