@@ -1,11 +1,10 @@
-package practicae;
+package practicae; 
 
 import com.sun.j3d.utils.geometry.*;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.image.TextureLoader;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*; 
 import javax.media.j3d.*;
 import javax.swing.*;
 import javax.vecmath.*;
@@ -18,6 +17,7 @@ public class PracticaE extends JPanel implements ItemListener {
     private Alpha saludoAlphaDer;
     private Alpha saludoAlphaIzq;
     private Alpha flyAlpha;
+    private Alpha maxwellAlpha; 
 
     public PracticaE() {
         setLayout(new BorderLayout());
@@ -30,11 +30,41 @@ public class PracticaE extends JPanel implements ItemListener {
 
         universo.getViewingPlatform().setNominalViewingTransform();
         universo.addBranchGraph(escena);
+
+        // ==========================================
+        // CONTROL MOUSE: MODO MAXWELL
+        // ==========================================
+        canvas.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                maxwellAlpha.resume();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                maxwellAlpha.pause();
+                maxwellAlpha.setStartTime(System.currentTimeMillis() - maxwellAlpha.getTriggerTime());
+                maxwellAlpha.setStartTime(System.currentTimeMillis()); 
+            }
+        });
     }
 
     public BranchGroup createSceneGraph() {
         BranchGroup root = new BranchGroup();
         BoundingSphere boundsAnim = new BoundingSphere(new Point3d(0,0,0), 100);
+
+        TransformGroup maxwellTG = new TransformGroup();
+        maxwellTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        
+        maxwellAlpha = new Alpha(-1, 100);
+        maxwellAlpha.setStartTime(System.currentTimeMillis());
+        maxwellAlpha.pause();
+
+        Transform3D ejePersonalizado = new Transform3D();
+
+        RotationInterpolator maxwellRot = new RotationInterpolator(maxwellAlpha, maxwellTG, ejePersonalizado, 0.0f, (float)Math.PI*2.0f);
+        maxwellRot.setSchedulingBounds(boundsAnim);
+        maxwellTG.addChild(maxwellRot);
 
         TransformGroup mainTG = new TransformGroup();
         mainTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -230,7 +260,8 @@ public class PracticaE extends JPanel implements ItemListener {
         mainTG.addChild(colaTG);
         mainTG.addChild(cola2TG);
         
-        root.addChild(mainTG);
+        maxwellTG.addChild(mainTG);
+        root.addChild(maxwellTG);
 
         root.addChild(crearMosca(boundsAnim));
 
@@ -262,7 +293,6 @@ public class PracticaE extends JPanel implements ItemListener {
         tMosca.mul(rotOrientacion);
 
         TransformGroup flyPosTG = new TransformGroup(tMosca);
-
       
         Appearance flyBodyApp = crearApariencia(new Color3f(0.1f, 0.1f, 0.1f)); 
         Appearance flyEyeApp = crearApariencia(new Color3f(0.6f, 0.0f, 0.0f));  
@@ -274,7 +304,6 @@ public class PracticaE extends JPanel implements ItemListener {
         matWing.setDiffuseColor(new Color3f(0.8f, 0.8f, 1.0f));
         flyWingApp.setMaterial(matWing);
 
-        //ABDOMEN atras
         Transform3D tAbdo = new Transform3D();
         tAbdo.setTranslation(new Vector3f(-0.04f, 0f, 0f));
         tAbdo.setScale(new Vector3d(1.4, 1.0, 1.0));
@@ -282,18 +311,15 @@ public class PracticaE extends JPanel implements ItemListener {
         abdoTG.addChild(new Sphere(0.03f, flyBodyApp));
         flyPosTG.addChild(abdoTG);
 
-        //cuerpo centro
         TransformGroup thoraxTG = new TransformGroup();
         thoraxTG.addChild(new Sphere(0.025f, flyBodyApp));
         flyPosTG.addChild(thoraxTG);
         
-        //CABEZA
         Transform3D tHead = new Transform3D();
         tHead.setTranslation(new Vector3f(0.035f, 0f, 0f));
         TransformGroup headTG = new TransformGroup(tHead);
         headTG.addChild(new Sphere(0.018f, flyBodyApp));
         
-        // OJOS 
         Transform3D tOjoI = new Transform3D();
         tOjoI.setTranslation(new Vector3f(0.005f, 0.005f, 0.012f));
         TransformGroup ojoITG = new TransformGroup(tOjoI);
@@ -308,7 +334,6 @@ public class PracticaE extends JPanel implements ItemListener {
         
         flyPosTG.addChild(headTG);
 
-        // 4. ALAS 
         Transform3D tAlaI = new Transform3D();
         tAlaI.setTranslation(new Vector3f(-0.01f, 0.02f, 0.03f));
         tAlaI.setScale(new Vector3d(1.8, 0.1, 0.8));
@@ -368,9 +393,18 @@ public class PracticaE extends JPanel implements ItemListener {
             flyAlpha.pause();
         }
     }
+    
+    public Canvas3D getCanvas() {
+        return (Canvas3D) getComponent(0);
+    }
+
+    //getter para que MenuPrincipal pueda adjuntar el MouseListener al canvas3D externo y controlar el giro de Meowl
+    public Alpha getMaxwellAlpha() {
+        return maxwellAlpha;
+    }
 
     public static void main(String[] args) {
-        JFrame ventana = new JFrame("Meowl 3D - Vuelo Realista");
+        JFrame ventana = new JFrame("Meowl 3D oiiiaoiia");
         PracticaE panel = new PracticaE();
         JCheckBox animacion = new JCheckBox("Animación Activa");
         animacion.setSelected(true);
