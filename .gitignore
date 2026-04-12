@@ -1,1 +1,13 @@
 /Meowl3D/dist/
+
+/Meowl3D/nbproject/private/
+/Meowl3D/build/
+/Meowl3D/dist/
+/Meowl3D/nbdist/
+/Meowl3D/.nb-gradle/
+
+*.class
+*.jar
+*.war
+
+*.log

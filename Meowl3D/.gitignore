@@ -1,0 +1,11 @@
+nbproject/private/
+build/
+dist/
+nbdist/
+.nb-gradle/
+
+*.class
+*.jar
+*.war
+
+*.log

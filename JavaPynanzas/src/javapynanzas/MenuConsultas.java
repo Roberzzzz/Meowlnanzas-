@@ -56,7 +56,12 @@ public class MenuConsultas extends JFrame {
         int xInicio = (800 - (anchoBtn * 2 + espacio)) / 2;
 
         JButton btnPorPersona = crearBotonMenu("POR PERSONA", xInicio, yBotones, anchoBtn, altoBtn);
-        btnPorPersona.addActionListener(e -> System.out.println("Abriendo consultas por persona"));
+        btnPorPersona.addActionListener(e -> {
+            SubMenuConsultasPersonas subMenuPersona = new SubMenuConsultasPersonas();
+            subMenuPersona.setLocation(this.getLocation());
+            subMenuPersona.setVisible(true);
+            this.dispose();
+        });
         contenedor.add(btnPorPersona);
 
         JButton btnPorCurso = crearBotonMenu("POR CURSO", xInicio + anchoBtn + espacio, yBotones, anchoBtn, altoBtn);
