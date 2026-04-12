@@ -65,8 +65,14 @@ public class MenuConsultas extends JFrame {
         contenedor.add(btnPorPersona);
 
         JButton btnPorCurso = crearBotonMenu("POR CURSO", xInicio + anchoBtn + espacio, yBotones, anchoBtn, altoBtn);
-        btnPorCurso.addActionListener(e -> System.out.println("Abriendo consultas por curso"));
+        btnPorCurso.addActionListener(e -> {
+            SubMenuConsultasCursos subMenuCursos = new SubMenuConsultasCursos();
+            subMenuCursos.setLocation(this.getLocation());
+            subMenuCursos.setVisible(true);
+            this.dispose();
+        });
         contenedor.add(btnPorCurso);
+
 
         JButton btnVolver = new JButton("← Volver al Menú Principal");
         btnVolver.setBounds(275, 480, 250, 40); 

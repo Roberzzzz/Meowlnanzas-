@@ -104,7 +104,7 @@ public class SubMenuInscripciones extends JFrame {
         btnVolver.setBackground(new Color(60, 60, 60));
         btnVolver.setForeground(Color.WHITE);
         btnVolver.addActionListener(e -> {
-            new MenuPrincipal().setVisible(true);
+            new MenuRegistro().setVisible(true);
             this.dispose();
         });
         panelPrincipal.add(btnVolver);
