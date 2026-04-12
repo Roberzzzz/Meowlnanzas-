@@ -34,11 +34,9 @@ public class MenuPrincipal extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            //Cuerpo del globo
             g2.setColor(new Color(255, 255, 255, 230));
             g2.fillRoundRect(0, 0, getWidth() - 20, getHeight() - 1, 20, 20);
             
-            //Punta del globo hacia el Meowl
             Path2D.Double pointer = new Path2D.Double();
             pointer.moveTo(getWidth() - 20, 20);   
             pointer.lineTo(getWidth(), 10);        
@@ -46,7 +44,6 @@ public class MenuPrincipal extends JFrame {
             pointer.closePath();
             g2.fill(pointer);
 
-            //Borde gris
             g2.setColor(new Color(150, 150, 150));
             g2.drawRoundRect(0, 0, getWidth() - 20, getHeight() - 1, 20, 20);
             
@@ -94,12 +91,10 @@ public class MenuPrincipal extends JFrame {
         lblTitulo.setBounds(50, 40, 400, 40); 
         contenedor.add(lblTitulo);
 
-        //Globo de texto
         lblGlobo = new GloboTexto();
         lblGlobo.setBounds(60, 110, 420, 85); 
         contenedor.add(lblGlobo);
 
-        //Java 3D de Meowl
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
         Canvas3D canvas3D = new Canvas3D(config);
         canvas3D.setBounds(450, 20, 300, 250); 
@@ -110,6 +105,22 @@ public class MenuPrincipal extends JFrame {
         PracticaE meowl3D = new PracticaE();
         BranchGroup escena = meowl3D.createSceneGraph();
         universo.addBranchGraph(escena);
+
+        //enlace del canvas3D local con el maxwellAlpha de meowl3D para que el giro funcione también en el menú
+  
+        Alpha maxwellAlpha = meowl3D.getMaxwellAlpha();
+        canvas3D.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                maxwellAlpha.resume();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                maxwellAlpha.pause();
+                maxwellAlpha.setStartTime(System.currentTimeMillis());
+            }
+        });
 
         //Botón Registro
         JButton btnRegistro = new JButton("REGISTRO");

@@ -59,8 +59,16 @@ public class MenuRegistro extends JFrame {
             this.dispose();
         });
         contenedor.add(btnPersona);
+        
+        JButton btnInscripcion = crearBotonHorizontal("Inscripción", 230, yBotones, anchoBtn, altoBtn);
+        btnInscripcion.addActionListener(e -> {
+            SubMenuInscripciones ventanitaInscripciones = new SubMenuInscripciones();
+            ventanitaInscripciones.setLocation(this.getLocation());
+            ventanitaInscripciones.setVisible(true);
+            this.dispose();
+        });
+        contenedor.add(btnInscripcion);
 
-        contenedor.add(crearBotonHorizontal("Inscripción", 230, yBotones, anchoBtn, altoBtn));
         contenedor.add(crearBotonHorizontal("Pago", 420, yBotones, anchoBtn, altoBtn));
         
         JButton btnCursos = crearBotonHorizontal("Cursos", 610, yBotones, anchoBtn, altoBtn);
