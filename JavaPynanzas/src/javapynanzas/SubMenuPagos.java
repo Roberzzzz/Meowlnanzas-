@@ -15,7 +15,7 @@ public class SubMenuPagos extends JFrame {
     private JComboBox<Integer> comboCuotas;
     private JComboBox<String> comboMetodo;
     private JComboBox<ItemBanco> comboBancos;
-    private JLabel lblNombreAlumno, lblMontoRequerido;
+    private JLabel lblNombreAlumno, lblMontoRequerido, lblBancos;
     private ImageIcon iconoWarning = cargarIcono("meowl_icon_warning.png", 50, 50);
     private ImageIcon iconoError = cargarIcono("meowl_icon_error.png", 50, 50);
     
@@ -167,91 +167,129 @@ public class SubMenuPagos extends JFrame {
                 mostrarFormularioPago(rs);
             } else {
                 
-                JOptionPane.showMessageDialog(this, "No hay inscripciones pendientes.");
+                JOptionPane.showMessageDialog(this, "No hay inscripciones pendientes.", "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.PLAIN_MESSAGE, iconoError);
         }
     }
 
-    private void mostrarFormularioPago(ResultSet rs) throws SQLException {
-        String nombreCompleto = rs.getString("nombre") + " " + rs.getString("apellido");
-        panelPrincipal.removeAll();
-        
-        lblNombreAlumno = new JLabel(nombreCompleto, SwingConstants.CENTER);
-        lblNombreAlumno.setBackground(new Color(45, 45, 45));
-        lblNombreAlumno.setForeground(Color.WHITE);
-        lblNombreAlumno.setFont(new Font("Arial", Font.BOLD, 18));
-        lblNombreAlumno.setBounds(0, 30, 600, 25);
-        panelPrincipal.add(lblNombreAlumno);
+ private void mostrarFormularioPago(ResultSet rs) throws SQLException {
+    String nombreCompleto = rs.getString("nombre") + " " + rs.getString("apellido");
+    panelPrincipal.removeAll();
+    
+    lblNombreAlumno = new JLabel(nombreCompleto, SwingConstants.CENTER);
+    lblNombreAlumno.setForeground(Color.WHITE);
+    lblNombreAlumno.setFont(new Font("Arial", Font.BOLD, 18));
+    lblNombreAlumno.setBounds(0, 30, 600, 25);
+    panelPrincipal.add(lblNombreAlumno);
 
-        comboCursos = new JComboBox<>();
-        do {
-            comboCursos.addItem(new ItemCurso(
-                rs.getInt("id_inscripcion"), 
-                rs.getString("curso"), 
-                rs.getDouble("saldo_restante"),
-                rs.getDouble("costo_curso")
-            ));
-        } while (rs.next());
-        
-        comboCursos.setBounds(100, 100, 400, 30);
-        comboCursos.addActionListener(e -> recalcularLogicaCuotas());
-        panelPrincipal.add(comboCursos);
+    comboCursos = new JComboBox<>();
+    do {
+        comboCursos.addItem(new ItemCurso(
+            rs.getInt("id_inscripcion"), 
+            rs.getString("curso"), 
+            rs.getDouble("saldo_restante"),
+            rs.getDouble("costo_curso")
+        ));
+    } while (rs.next());
+    
+    comboCursos.setBounds(100, 80, 400, 30);
+    comboCursos.addActionListener(e -> recalcularLogicaCuotas());
+    panelPrincipal.add(comboCursos);
 
-        comboCuotas = new JComboBox<>();
-        comboCuotas.setBounds(250, 180, 100, 30);
-        comboCuotas.setBackground(new Color(45, 45, 45));
-        comboCuotas.setForeground(Color.WHITE);
-        comboCuotas.addActionListener(e -> actualizarEtiquetaMonto());
-        panelPrincipal.add(comboCuotas);
+    // Label indicativo de cuotas
+    JLabel lblCuotas = new JLabel("Cantidad de cuotas a pagar:", SwingConstants.CENTER);
+    lblCuotas.setForeground(Color.GRAY);
+    lblCuotas.setBounds(0, 130, 600, 20);
+    panelPrincipal.add(lblCuotas);
 
-        lblMontoRequerido = new JLabel("Monto total: Bs. 0.00", SwingConstants.CENTER);
-        lblMontoRequerido.setBackground(new Color(45, 45, 45));
-        lblMontoRequerido.setForeground(Color.WHITE);
-        lblMontoRequerido.setBounds(0, 230, 600, 25);
-        panelPrincipal.add(lblMontoRequerido);
+    comboCuotas = new JComboBox<>();
+    comboCuotas.setBounds(250, 155, 100, 30);
+    comboCuotas.setBackground(new Color(45, 45, 45));
+    comboCuotas.setForeground(Color.WHITE);
+    comboCuotas.addActionListener(e -> actualizarEtiquetaMonto());
+    panelPrincipal.add(comboCuotas);
 
-        comboMetodo = new JComboBox<>(new String[]{"efectivo", "transferencia"});
-        comboMetodo.setBounds(225, 270, 150, 30);
+    lblMontoRequerido = new JLabel("Monto total: Bs. 0.00", SwingConstants.CENTER);
+    lblMontoRequerido.setForeground(new Color(144, 238, 144)); // Verde para resaltar el monto
+    lblMontoRequerido.setFont(new Font("Arial", Font.BOLD, 16));
+    lblMontoRequerido.setBounds(0, 200, 600, 25);
+    panelPrincipal.add(lblMontoRequerido);
 
-        panelPrincipal.add(comboMetodo);
-        
-        comboBancos = new JComboBox<>();
-        comboBancos.addItem(new ItemBanco(0, "-----"));
-        cargarBancos();
-        comboBancos.setBounds(100, 360, 340, 35);
-        comboBancos.setBackground(new Color(45, 45, 45));
-        comboBancos.setForeground(Color.WHITE);
-        comboBancos.setVisible(false);
-        panelPrincipal.add(comboBancos);
+    // Selector de método
+    JLabel lblMetodo = new JLabel("Método de pago:", SwingConstants.CENTER);
+    lblMetodo.setForeground(Color.GRAY);
+    lblMetodo.setBounds(0, 240, 600, 20);
+    panelPrincipal.add(lblMetodo);
 
+    comboMetodo = new JComboBox<>(new String[]{"efectivo", "transferencia"});
+    comboMetodo.setBounds(225, 265, 150, 30);
+    panelPrincipal.add(comboMetodo);
 
-        txtObservaciones = new JTextField("Sin observaciones");
-        txtObservaciones.setBounds(100, 380, 400, 35);
-        txtObservaciones.setBackground(new Color(45, 45, 45));
-        txtObservaciones.setForeground(Color.WHITE);
-        panelPrincipal.add(txtObservaciones);
+    // Elementos de Banco (Inicialmente ocultos)
+    lblBancos = new JLabel("Seleccione el banco de destino:", SwingConstants.CENTER);
+    lblBancos.setForeground(new Color(255, 204, 102));
+    lblBancos.setBounds(0, 310, 600, 25);
+    lblBancos.setVisible(false);
+    panelPrincipal.add(lblBancos);
 
-        JButton btnRegistrar = new JButton("Registrar pago");
-        btnRegistrar.setBounds(225, 400, 150, 40);
-        btnRegistrar.setBackground(new Color(48, 84, 150));
-        btnRegistrar.setForeground(Color.WHITE);
-        btnRegistrar.addActionListener(e -> ejecutarPago());
-        panelPrincipal.add(btnRegistrar);
-        
-        comboMetodo.addActionListener(e -> {
+    comboBancos = new JComboBox<>();
+    comboBancos.addItem(new ItemBanco(0, "----- Seleccione Banco -----"));
+    cargarBancos();
+    comboBancos.setBounds(150, 340, 300, 35);
+    comboBancos.setBackground(new Color(45, 45, 45));
+    comboBancos.setForeground(Color.WHITE);
+    comboBancos.setVisible(false);
+    panelPrincipal.add(comboBancos);
+
+    // Observaciones y Botón
+    JLabel lblObs = new JLabel("Observaciones:", SwingConstants.CENTER);
+    lblObs.setForeground(Color.GRAY);
+    lblObs.setBounds(100, 310, 400, 20); // Posición inicial para "efectivo"
+    panelPrincipal.add(lblObs);
+
+    txtObservaciones = new JTextField("Sin observaciones");
+    txtObservaciones.setBounds(100, 335, 400, 35);
+    txtObservaciones.setBackground(new Color(45, 45, 45));
+    txtObservaciones.setForeground(Color.WHITE);
+    panelPrincipal.add(txtObservaciones);
+
+    JButton btnRegistrar = new JButton("Registrar pago");
+    btnRegistrar.setBounds(225, 390, 150, 40);
+    btnRegistrar.setBackground(new Color(48, 84, 150));
+    btnRegistrar.setForeground(Color.WHITE);
+    btnRegistrar.addActionListener(e -> ejecutarPago());
+    panelPrincipal.add(btnRegistrar);
+
+    // Lógica de movimiento dinámico
+    comboMetodo.addActionListener(e -> {
         boolean esTransferencia = comboMetodo.getSelectedItem().equals("transferencia");
+        
+        // Mostrar/Ocultar banco
+        lblBancos.setVisible(esTransferencia);
         comboBancos.setVisible(esTransferencia);
-        // Bajamos un poco las observaciones si aparece el combo de bancos
-        txtObservaciones.setBounds(100, esTransferencia ? 410 : 320, 400, 35);
-        btnRegistrar.setBounds(225, esTransferencia ? 460 : 380, 150, 40);
-         });
-
-        recalcularLogicaCuotas();
+        
+        if (esTransferencia) {
+            // Empujar hacia abajo las observaciones y el botón
+            lblObs.setBounds(100, 390, 400, 20);
+            txtObservaciones.setBounds(100, 415, 400, 35);
+            btnRegistrar.setBounds(225, 465, 150, 40);
+        } else {
+            // Regresar a la posición original (subir)
+            lblObs.setBounds(100, 310, 400, 20);
+            txtObservaciones.setBounds(100, 335, 400, 35);
+            btnRegistrar.setBounds(225, 390, 150, 40);
+        }
+        
         panelPrincipal.revalidate();
         panelPrincipal.repaint();
-    }
+    });
+
+    recalcularLogicaCuotas();
+    panelPrincipal.revalidate();
+    panelPrincipal.repaint();
+}
 
     private void recalcularLogicaCuotas() {
         ItemCurso selected = (ItemCurso) comboCursos.getSelectedItem();
@@ -290,7 +328,7 @@ public class SubMenuPagos extends JFrame {
         ItemBanco bancoSeleccionado = (ItemBanco) comboBancos.getSelectedItem();
 
         if (metodo.equals("transferencia") && (bancoSeleccionado == null || bancoSeleccionado.id == 0)) {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione un banco para la transferencia.");
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione un banco para la transferencia.",  "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
             return;
         }
         
@@ -320,7 +358,7 @@ public class SubMenuPagos extends JFrame {
                 pstP.setInt(1, item.idInscripcion);
                 pstP.setString(2, java.time.LocalDate.now().toString());
                 pstP.setDouble(3, montoAPagar);
-                pstP.setObject(4, idBanco, java.sql.Types.INTEGER);
+                pstP.setObject(4, idBanco);
                 pstP.setInt(5, cantCuotas); 
                 pstP.setString(6, (String) comboMetodo.getSelectedItem());
                 pstP.setString(7, txtObservaciones.getText());
@@ -328,6 +366,12 @@ public class SubMenuPagos extends JFrame {
                 pstP.executeUpdate();
             }
             String cuotasSTR = Integer.toString(cantCuotas);
+            String bancoSTR ="";
+            if (idBanco != null){
+            bancoSTR = Integer.toString(idBanco);
+                    }else{
+                bancoSTR = "No aplica";
+            }
     
             GenPdf.generarReciboPago(
                 item.idInscripcion, 
@@ -338,7 +382,7 @@ public class SubMenuPagos extends JFrame {
                 (String) comboMetodo.getSelectedItem(), 
                 montoAPagar, 
                 metodo, 
-                Integer.toString(idBanco), 
+                bancoSTR, 
                 java.time.LocalDate.now().toString(), 
                 txtObservaciones.getText(), 
                 nroReferencia
@@ -357,7 +401,7 @@ public class SubMenuPagos extends JFrame {
             mostrarResumenFinal(cantCuotas, montoAPagar, nuevoSaldo);
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "ERROR", JOptionPane.PLAIN_MESSAGE, iconoError);
         }
     }
 
