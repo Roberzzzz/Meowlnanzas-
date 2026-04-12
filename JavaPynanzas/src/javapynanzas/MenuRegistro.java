@@ -69,7 +69,15 @@ public class MenuRegistro extends JFrame {
         });
         contenedor.add(btnInscripcion);
 
-        contenedor.add(crearBotonHorizontal("Pago", 420, yBotones, anchoBtn, altoBtn));
+        JButton btnPago = crearBotonHorizontal("Pago", 420, yBotones, anchoBtn, altoBtn);
+        btnPago.addActionListener(e->{
+            
+            SubMenuPagos ventanaPagos = new SubMenuPagos();
+            ventanaPagos.setLocation(this.getLocation());
+            ventanaPagos.setVisible(true);
+            this.dispose();
+        });
+        contenedor.add(btnPago);
         
         JButton btnCursos = crearBotonHorizontal("Cursos", 610, yBotones, anchoBtn, altoBtn);
         btnCursos.addActionListener(e -> {
