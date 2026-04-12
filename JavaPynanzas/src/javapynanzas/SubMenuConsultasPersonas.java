@@ -91,16 +91,23 @@ public class SubMenuConsultasPersonas extends JFrame {
         modeloTabla.setRowCount(0); 
         txtSaldoPendiente.setText(""); 
 
-        String url = "jdbc:sqlite:rutadebddxd"; 
+        Conectar conecta = new Conectar();
+        Connection conn = conecta.getConexion();
 
-        try (Connection conn = DriverManager.getConnection(url);
-             Statement stmt = conn.createStatement()) {
-            
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Error: No se pudo conectar a la base de datos.");
+            return;
+        }
+
+        try {
+            Statement stmt = conn.createStatement();
+
             String sqlPersona = "SELECT nombre || ' ' || apellido FROM Personas WHERE cedula = '" + cedula + "'";
             ResultSet rs1 = stmt.executeQuery(sqlPersona);
 
             if (!rs1.next()) {
                 lblNombrePersona.setText("Persona: No encontrada");
+                conn.close();
                 return;
             }
             lblNombrePersona.setText("Persona: " + rs1.getString(1));
@@ -134,13 +141,17 @@ public class SubMenuConsultasPersonas extends JFrame {
                 }
             }
 
-            if (!tieneDeuda) {
+            if (!tieneDeuda && modeloTabla.getRowCount() > 0) {
                 txtSaldoPendiente.setForeground(new Color(100, 255, 100)); 
                 txtSaldoPendiente.setText(">>> ESTADO: SOLVENTE. Todos los cursos están pagados.");
-            } else {
+            } else if (tieneDeuda) {
                 txtSaldoPendiente.setForeground(new Color(255, 150, 150));
                 txtSaldoPendiente.setText(">>> ESTADO: SALDO PENDIENTE DETECTADO.\nRevisar columnas de saldo en la tabla.");
+            } else {
+                txtSaldoPendiente.setText(">>> No se encontraron registros para esta persona.");
             }
+
+            conn.close();
 
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error DB: " + e.getMessage());

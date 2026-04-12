@@ -7,7 +7,6 @@
 /Meowl3D/.nb-gradle/
 
 *.class
-*.jar
 *.war
 
 *.log
