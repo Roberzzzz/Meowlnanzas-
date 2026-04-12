@@ -4,354 +4,311 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import javax.imageio.ImageIO;
+import java.sql.*;
 
 public class SubMenuCursos extends JFrame {
 
-    private JPanel panelRegistrar, panelEliminar;
+    private JPanel panelPrincipal, panelRegistrar, panelEliminar;
     private JButton btnTabRegistrar, btnTabEliminar;
     private JTextField txtNombre, txtDesc, txtCosto, txtDuracion;
     private JComboBox<String> comboProfesor, comboEliminar;
+    private ImageIcon iconoSucc = cargarIcono("meowl_icon_aprobado.png", 50, 50);
+    private ImageIcon iconoWarning = cargarIcono("meowl_icon_warning.png", 50, 50);
+    private ImageIcon iconoError = cargarIcono("meowl_icon_error.png", 50, 50);
+
+    class PanelFondo extends JPanel {
+        private Image imagen;
+        public PanelFondo() {
+            try {
+                imagen = ImageIO.read(new File("resources/meowl_login.jpg"));
+            } catch (Exception e) {
+                setBackground(new Color(30, 30, 30));
+            }
+            setLayout(new BorderLayout());
+        }
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (imagen != null) {
+                g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(new Color(0, 0, 0, 200)); 
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        }
+    }
 
     public SubMenuCursos() {
         setTitle("Pynanzas - Gestión de Cursos");
-        setSize(500, 700);
+        setSize(800, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-        setLayout(null);
-        
-        btnTabRegistrar = new JButton("Registrar");
-        btnTabRegistrar.setBounds(100, 30, 140, 35);
-        btnTabRegistrar.setFocusPainted(false);
-        
-        btnTabEliminar = new JButton("Eliminar");
-        btnTabEliminar.setBounds(250, 30, 140, 35);
-        btnTabEliminar.setFocusPainted(false);
-        
-     
-        crearPanelRegistrar();
-        crearPanelEliminar();
 
-        btnTabRegistrar.addActionListener(e -> mostrarPanel("registrar"));
-        btnTabEliminar.addActionListener(e -> mostrarPanel("eliminar"));
+        // Contenedor principal con fondo
+        PanelFondo contenedorFondo = new PanelFondo();
+        setContentPane(contenedorFondo);
 
-       
-        mostrarPanel("registrar");
-
-        add(btnTabRegistrar);
-        add(btnTabEliminar);
-        
-        // Botón Volver General
+        // Botón Volver (Estilo minimalista arriba a la izquierda)
         JButton btnVolver = new JButton("←");
-        btnVolver.setBounds(15, 15, 45, 30);
+        btnVolver.setBounds(15, 15, 50, 30);
         btnVolver.setBackground(new Color(60, 60, 60));
         btnVolver.setForeground(Color.WHITE);
+        btnVolver.setFocusPainted(false);
+        btnVolver.setBorder(null);
         btnVolver.addActionListener(e -> {
             new MenuRegistro().setVisible(true);
             this.dispose();
         });
-        add(btnVolver);
-        
-        
-        getContentPane().setBackground(new Color(30, 30, 30));
+        contenedorFondo.add(btnVolver);
+
+        // Panel Central Translúcido
+        panelPrincipal = new JPanel();
+        panelPrincipal.setLayout(null);
+        panelPrincipal.setPreferredSize(new Dimension(550, 580));
+        panelPrincipal.setBackground(new Color(35, 35, 35, 220));
+
+        // Centrar el panel principal usando GridBagLayout
+        JPanel contenedorCentrado = new JPanel(new GridBagLayout());
+        contenedorCentrado.setOpaque(false);
+        contenedorCentrado.add(panelPrincipal);
+        contenedorFondo.add(contenedorCentrado, BorderLayout.CENTER);
+
+        // Botones de Navegación (Tabs)
+        btnTabRegistrar = new JButton("Registrar Curso");
+        btnTabRegistrar.setBounds(125, 20, 150, 35);
+        btnTabRegistrar.setFocusPainted(false);
+        btnTabRegistrar.setBorder(null);
+
+        btnTabEliminar = new JButton("Eliminar Curso");
+        btnTabEliminar.setBounds(275, 20, 150, 35);
+        btnTabEliminar.setFocusPainted(false);
+        btnTabEliminar.setBorder(null);
+
+        panelPrincipal.add(btnTabRegistrar);
+        panelPrincipal.add(btnTabEliminar);
+
+        // Crear sub-paneles
+        crearPanelRegistrar();
+        crearPanelEliminar();
+
+        // Eventos de Tabs
+        btnTabRegistrar.addActionListener(e -> mostrarPanel("registrar"));
+        btnTabEliminar.addActionListener(e -> mostrarPanel("eliminar"));
+
+        // Mostrar por defecto
+        mostrarPanel("registrar");
     }
 
     private void mostrarPanel(String nombre) {
-        if (nombre.equals("registrar")) {
-            panelRegistrar.setVisible(true);
-            panelEliminar.setVisible(false);
-            btnTabRegistrar.setBackground(new Color(59, 130, 246));
-            btnTabEliminar.setBackground(new Color(185, 28, 28, 100));
+        boolean esRegistrar = nombre.equals("registrar");
+        panelRegistrar.setVisible(esRegistrar);
+        panelEliminar.setVisible(!esRegistrar);
+
+        if (esRegistrar) {
+            btnTabRegistrar.setBackground(new Color(59, 130, 246)); // Azul
+            btnTabRegistrar.setForeground(Color.WHITE);
+            btnTabEliminar.setBackground(new Color(50, 50, 50));
+            btnTabEliminar.setForeground(Color.GRAY);
         } else {
-            panelRegistrar.setVisible(false);
-            panelEliminar.setVisible(true);
-            btnTabEliminar.setBackground(new Color(185, 28, 28));
-            btnTabRegistrar.setBackground(new Color(59, 130, 246, 100));
+            btnTabEliminar.setBackground(new Color(185, 28, 28)); // Rojo
+            btnTabEliminar.setForeground(Color.WHITE);
+            btnTabRegistrar.setBackground(new Color(50, 50, 50));
+            btnTabRegistrar.setForeground(Color.GRAY);
         }
     }
 
     private void crearPanelRegistrar() {
         panelRegistrar = new JPanel();
-        panelRegistrar.setBounds(0, 80, 500, 600);
+        panelRegistrar.setBounds(25, 70, 500, 500);
         panelRegistrar.setOpaque(false);
         panelRegistrar.setLayout(null);
-        int yValue = 35;
 
-        JLabel lblHeader= new JLabel("Registrar nuevo curso", SwingConstants.CENTER);
-        lblHeader.setForeground(Color.GREEN);
-        lblHeader.setBounds(0, yValue, 500, 20);
+        int y = 10;
+        JLabel lblHeader = new JLabel("Formulario de Registro", SwingConstants.CENTER);
+        lblHeader.setForeground(new Color(34, 197, 94)); // Verde suave
+        lblHeader.setFont(new Font("Arial", Font.BOLD, 16));
+        lblHeader.setBounds(0, y, 500, 25);
         panelRegistrar.add(lblHeader);
-        
-        // PARA EL NOMBRE
-        yValue = yValue+20;
-        JLabel lblNombreCurso = new JLabel("Nombre del Curso", SwingConstants.CENTER);
-        lblNombreCurso.setForeground(Color.GRAY);
-        lblNombreCurso.setBounds(0, yValue, 500, 20);
-        panelRegistrar.add(lblNombreCurso);
-        
-        yValue = yValue+20;
-        txtNombre = new JTextField();
-        txtNombre.setBounds(80, yValue, 340, 35);
-        txtNombre.setBackground(new Color(45, 45, 45));
-        txtNombre.setForeground(Color.WHITE);
-        panelRegistrar.add(txtNombre);
-        
-        yValue = yValue+40;
-        
-        //PARA LA DESCRIPCION
-        
-        JLabel lblDescription = new JLabel("Descripción (Opcional)", SwingConstants.CENTER);
-        lblDescription.setForeground(Color.GRAY);
-        lblDescription.setBounds(0, yValue, 500, 20);
-        panelRegistrar.add(lblDescription);
-        
-        yValue = yValue+20;
-        txtDesc = new JTextField();
-        txtDesc.setBounds(80, yValue, 340, 35);
-        txtDesc.setBackground(new Color(45, 45, 45));
-        txtDesc.setForeground(Color.WHITE);
-        panelRegistrar.add(txtDesc);
-        
-        yValue = yValue+40;
-        
-        // PARA EL COSTO
-        
-        JLabel lblCosto = new JLabel("Costo", SwingConstants.CENTER);
-        lblCosto.setForeground(Color.GRAY);
-        lblCosto.setBounds(0, yValue, 500, 20);
-        panelRegistrar.add(lblCosto);
-        
-        yValue = yValue+20;
-        txtCosto = new JTextField();
-        txtCosto.setBounds(80, yValue, 340, 35);
-        txtCosto.setBackground(new Color(45, 45, 45));
-        txtCosto.setForeground(Color.WHITE);
-        panelRegistrar.add(txtCosto);
-        
-        yValue = yValue+40;
-        
-        // PARA LA DURACION
-        
-        JLabel lblDuracion = new JLabel("Duración (Semanas)", SwingConstants.CENTER);
-        lblDuracion.setForeground(Color.GRAY);
-        lblDuracion.setBounds(0, yValue, 500, 20);
-        panelRegistrar.add(lblDuracion);
-        
-        yValue = yValue+20;
-        txtDuracion = new JTextField();
-        txtDuracion.setBounds(80, yValue, 340, 35);
-        txtDuracion.setBackground(new Color(45, 45, 45));
-        txtDuracion.setForeground(Color.WHITE);
-        panelRegistrar.add(txtDuracion);
-        
-        yValue = yValue+40;
 
-        //PARA LOS PROFESORES
-        JLabel lblProfesor = new JLabel("Profesores", SwingConstants.CENTER);
-        lblProfesor.setForeground(Color.GRAY);
-        lblProfesor.setBounds(0, yValue, 500, 20);
-        panelRegistrar.add(lblProfesor);
+        y += 40;
+        agregarCampo(panelRegistrar, "Nombre del Curso", txtNombre = new JTextField(), y);
+        y += 65;
+        agregarCampo(panelRegistrar, "Descripción (Opcional)", txtDesc = new JTextField(), y);
+        y += 65;
+        agregarCampo(panelRegistrar, "Costo del Curso (Bs.)", txtCosto = new JTextField(), y);
+        y += 65;
+        agregarCampo(panelRegistrar, "Duración (Semanas)", txtDuracion = new JTextField(), y);
         
-        yValue = yValue+20;
-        
+        y += 65;
+        JLabel lblProf = new JLabel("Asignar Profesor", SwingConstants.CENTER);
+        lblProf.setForeground(Color.GRAY);
+        lblProf.setBounds(0, y, 500, 20);
+        panelRegistrar.add(lblProf);
+
         comboProfesor = new JComboBox<>();
-        comboProfesor.setBounds(80, yValue, 340, 20);
-        comboProfesor.setBackground(new Color(59, 130, 246));
+        comboProfesor.setBounds(100, y + 20, 300, 30);
+        comboProfesor.setBackground(new Color(45, 45, 45));
         comboProfesor.setForeground(Color.WHITE);
+        cargarProfesores();
         panelRegistrar.add(comboProfesor);
-        cargarProfesores(); 
 
-        panelRegistrar.add(comboProfesor);
-        
-        //
-        
-
-        JButton btnGuardar = new JButton("Registrar Curso");
-        btnGuardar.setBounds(150, 500, 200, 45);
-        btnGuardar.setBackground(new Color(34, 100, 50));
+        JButton btnGuardar = new JButton("Guardar Curso");
+        btnGuardar.setBounds(150, 430, 200, 40);
+        btnGuardar.setBackground(new Color(22, 101, 52));
         btnGuardar.setForeground(Color.WHITE);
+        btnGuardar.setFocusPainted(false);
+        btnGuardar.addActionListener(e -> guardarCurso());
         panelRegistrar.add(btnGuardar);
-        btnGuardar.addActionListener(e-> guardarCurso());
 
-        add(panelRegistrar);
+        panelPrincipal.add(panelRegistrar);
     }
-    
 
     private void crearPanelEliminar() {
         panelEliminar = new JPanel();
-        panelEliminar.setBounds(0, 80, 500, 600);
+        panelEliminar.setBounds(25, 70, 500, 500);
         panelEliminar.setOpaque(false);
         panelEliminar.setLayout(null);
 
-        JLabel lblTitulo = new JLabel("Eliminar curso existente", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 18));
-        lblTitulo.setForeground(new Color(255, 165, 0)); 
+        JLabel lblTitulo = new JLabel("Eliminar Curso Existente", SwingConstants.CENTER);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 16));
+        lblTitulo.setForeground(new Color(249, 115, 22)); // Naranja
         lblTitulo.setBounds(0, 40, 500, 30);
         panelEliminar.add(lblTitulo);
 
         comboEliminar = new JComboBox<>();
-        comboEliminar.setBounds(80, 85, 340, 40);
-        comboEliminar.setBackground(new Color(59, 130, 246));
+        comboEliminar.setBounds(100, 100, 300, 40);
+        comboEliminar.setBackground(new Color(45, 45, 45));
         comboEliminar.setForeground(Color.WHITE);
         cargarCursosParaEliminar();
         panelEliminar.add(comboEliminar);
-   
-    
-        
-        JLabel lblWarn = new JLabel("<html><center>Esta acción eliminará el curso permanentemente.<br>Solo se permite si no hay alumnos inscritos.</center></html>", SwingConstants.CENTER);
-        lblWarn.setForeground(new Color(255, 165, 0));
-        lblWarn.setBounds(0, 160, 400, 50);
+
+        JLabel lblWarn = new JLabel("<html><center>Advertencia: Solo se pueden eliminar cursos<br>que no tengan alumnos inscritos actualmente.</center></html>", SwingConstants.CENTER);
+        lblWarn.setForeground(new Color(239, 68, 68));
+        lblWarn.setBounds(50, 180, 400, 60);
         panelEliminar.add(lblWarn);
 
-     
-        JButton btnConfirmar = new JButton("Confirmar eliminación");
-        btnConfirmar.setBounds(150, 230, 200, 40);
-        btnConfirmar.setBackground(new Color(185, 28, 28));
+        JButton btnConfirmar = new JButton("Eliminar de la Base de Datos");
+        btnConfirmar.setBounds(125, 260, 250, 40);
+        btnConfirmar.setBackground(new Color(153, 27, 27));
         btnConfirmar.setForeground(Color.WHITE);
-        panelEliminar.add(btnConfirmar);
+        btnConfirmar.setFocusPainted(false);
         btnConfirmar.addActionListener(e -> eliminarCurso());
+        panelEliminar.add(btnConfirmar);
 
-        add(panelEliminar);
+        panelPrincipal.add(panelEliminar);
     }
+
+    private void agregarCampo(JPanel panel, String titulo, JTextField campo, int y) {
+        JLabel label = new JLabel(titulo, SwingConstants.CENTER);
+        label.setForeground(Color.GRAY);
+        label.setBounds(0, y, 500, 20);
+        panel.add(label);
+
+        campo.setBounds(100, y + 20, 300, 30);
+        campo.setBackground(new Color(45, 45, 45));
+        campo.setForeground(Color.WHITE);
+        campo.setCaretColor(Color.WHITE);
+        campo.setBorder(BorderFactory.createLineBorder(new Color(70, 70, 70)));
+        panel.add(campo);
+    }
+
+
     private void cargarProfesores() {
         Conectar conecta = new Conectar();
-        String sql = "SELECT  id_profesor, nombre, apellido, cedula FROM profesores ORDER BY id_profesor ASC";
-
-        try (java.sql.Connection con = conecta.getConexion();
-             java.sql.Statement st = con.createStatement();
-             java.sql.ResultSet rs = st.executeQuery(sql)) {
-
+        String sql = "SELECT id_profesor, nombre, apellido, cedula FROM profesores ORDER BY id_profesor ASC";
+        try (Connection con = conecta.getConexion();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
             comboProfesor.removeAllItems();
-            comboProfesor.addItem("----"); 
-
+            comboProfesor.addItem("---- Seleccionar ----");
             while (rs.next()) {
-                String item =rs.getString("id_profesor")+"-"+
-                        rs.getString("nombre") + " " + 
-                              rs.getString("apellido")+ "-"+
-                                rs.getString("cedula");
-
-                comboProfesor.addItem(item);
+                comboProfesor.addItem(rs.getInt("id_profesor") + "-" + rs.getString("nombre") + " " + rs.getString("apellido"));
             }
-
-        } catch (java.sql.SQLException e) {
-            System.err.println("Error al cargar profesores: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("Error: " + e.getMessage());
         }
     }
+
     private void guardarCurso() {
-   
-    String nombre = txtNombre.getText().trim();
-    String descripcion = txtDesc.getText().trim();
-    String costoStr = txtCosto.getText().trim();
-    String duracionStr = txtDuracion.getText().trim();
-    
-    String profesorSeleccionado = (String) comboProfesor.getSelectedItem();
-    int idProfesor = 0;
-    
-    if (profesorSeleccionado != null && !profesorSeleccionado.equals("----")) {
+        String nombre = txtNombre.getText().trim();
+        String desc = txtDesc.getText().trim();
+        String costo = txtCosto.getText().trim();
+        String duracion = txtDuracion.getText().trim();
+        String prof = (String) comboProfesor.getSelectedItem();
+
+        if (nombre.isEmpty() || costo.isEmpty() || prof.equals("---- Seleccionar ----")) {
+            JOptionPane.showMessageDialog(this, "Por favor rellena los campos obligatorios.", "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
+            return;
+        }
+
         try {
-            // Dividimos el string para sacar solo el número del ID
-            idProfesor = Integer.parseInt(profesorSeleccionado.split("-")[0]);
-        } catch (Exception e) {
-            System.err.println("Error al procesar ID de profesor: " + e.getMessage());
-        }
-    }
-
-    // Validación rápida
-    if (nombre.isEmpty() || costoStr.isEmpty() || idProfesor == 0) {
-        JOptionPane.showMessageDialog(this, "Por favor, completa los campos obligatorios.");
-        return;
-    }
-
-    // 2. Proceso de inserción en la base de datos
-    Conectar conecta = new Conectar();
-    String sql = "INSERT INTO cursos (nombre, descripcion, costo_curso, duracion_semanas, id_profesor) VALUES (?, ?, ?, ?, ?)";
-
-    // Usamos try-with-resources para cerrar la conexión automáticamente
-    try (java.sql.Connection con = conecta.getConexion();
-         java.sql.PreparedStatement pst = con.prepareStatement(sql)) {
-
-        pst.setString(1, nombre);
-        pst.setString(2, descripcion);
-        pst.setDouble(3, Double.parseDouble(costoStr));   
-        pst.setInt(4, Integer.parseInt(duracionStr));     
-        pst.setInt(5, idProfesor);
-
-        int resultado = pst.executeUpdate();
-
-        if (resultado > 0) {
-            JOptionPane.showMessageDialog(this, "¡Curso '" + nombre + "' registrado con éxito!");
-            cargarCursosParaEliminar();
-        }
-
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Error: El costo y la duración deben ser números válidos.");
-    } catch (java.sql.SQLException e) {
-        JOptionPane.showMessageDialog(this, "Error de SQL: " + e.getMessage());
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Ocurrió un error inesperado: " + e.getMessage());
-    }
-}
-    
-    private void cargarCursosParaEliminar() {
-    Conectar conecta = new Conectar();
-    String sql = "SELECT id_curso, nombre FROM cursos";
-    
-    try (java.sql.Connection con = conecta.getConexion();
-         java.sql.Statement st = con.createStatement();
-         java.sql.ResultSet rs = st.executeQuery(sql)) {
-        
-        comboEliminar.removeAllItems();
-        while (rs.next()) {
-            comboEliminar.addItem(rs.getInt("id_curso") + " - " + rs.getString("nombre"));
-        }
-    } catch (Exception e) {
-        System.err.println("Error: " + e.getMessage());
-    }
-}
-    
-    private void eliminarCurso() {
-    String seleccionado = (String) comboEliminar.getSelectedItem();
-
-   
-    if (seleccionado == null || seleccionado.equals("----")) {
-        JOptionPane.showMessageDialog(this, "Por favor, selecciona un curso para eliminar.");
-        return;
-    }
-
-   
-    String[] partes = seleccionado.split(" - ");
-    int idCurso = Integer.parseInt(partes[0]);
-
-   
-    int respuesta = JOptionPane.showConfirmDialog(this, 
-        "¿Estás seguro de que deseas eliminar el curso: " + partes[1] + "?\nEsta acción no se puede deshacer.",
-        "Confirmar Eliminación", 
-        JOptionPane.YES_NO_OPTION, 
-        JOptionPane.WARNING_MESSAGE);
-
-    if (respuesta == JOptionPane.YES_OPTION) {
-        Conectar conecta = new Conectar();
-        String sql = "DELETE FROM cursos WHERE id_curso = ?";
-
-        try (java.sql.Connection con = conecta.getConexion();
-             java.sql.PreparedStatement pst = con.prepareStatement(sql)) {
-
-            pst.setInt(1, idCurso);
-
-            int resultado = pst.executeUpdate();
-
-            if (resultado > 0) {
-                JOptionPane.showMessageDialog(this, "Curso eliminado exitosamente.");
-                cargarCursosParaEliminar(); 
+            int idProf = Integer.parseInt(prof.split("-")[0]);
+            Conectar conecta = new Conectar();
+            String sql = "INSERT INTO cursos (nombre, descripcion, costo_curso, duracion_semanas, id_profesor) VALUES (?,?,?,?,?)";
+            
+            try (Connection con = conecta.getConexion();
+                 PreparedStatement pst = con.prepareStatement(sql)) {
+                pst.setString(1, nombre);
+                pst.setString(2, desc);
+                pst.setDouble(3, Double.parseDouble(costo));
+                pst.setInt(4, Integer.parseInt(duracion));
+                pst.setInt(5, idProf);
+                pst.executeUpdate();
+                
+                JOptionPane.showMessageDialog(this, "Curso guardado correctamente.", "NICE", JOptionPane.PLAIN_MESSAGE, iconoSucc);
+                cargarCursosParaEliminar();
+                // Limpiar campos
+                txtNombre.setText(""); txtDesc.setText(""); txtCosto.setText(""); txtDuracion.setText("");
             }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "ERROR", JOptionPane.PLAIN_MESSAGE, iconoError);
+        }
+    }
 
-        } catch (java.sql.SQLException e) {
-            JOptionPane.showMessageDialog(this, 
-                "No se puede eliminar el curso: Posiblemente tiene alumnos inscritos.\nError: " + e.getMessage(),
-                "Error de Base de Datos", 
-                JOptionPane.ERROR_MESSAGE);
+    private void cargarCursosParaEliminar() {
+        Conectar conecta = new Conectar();
+        try (Connection con = conecta.getConexion();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT id_curso, nombre FROM cursos")) {
+            comboEliminar.removeAllItems();
+            while (rs.next()) {
+                comboEliminar.addItem(rs.getInt("id_curso") + " - " + rs.getString("nombre"));
+            }
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void eliminarCurso() {
+        String seleccionado = (String) comboEliminar.getSelectedItem();
+        if (seleccionado == null) return;
+
+        int id = Integer.parseInt(seleccionado.split(" - ")[0]);
+        int confirm = JOptionPane.showConfirmDialog(this, "¿Eliminar este curso permanentemente?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            Conectar conecta = new Conectar();
+            try (Connection con = conecta.getConexion();
+                 PreparedStatement pst = con.prepareStatement("DELETE FROM cursos WHERE id_curso = ?")) {
+                pst.setInt(1, id);
+                pst.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Curso eliminado.", "NICE", JOptionPane.PLAIN_MESSAGE, iconoSucc);
+                cargarCursosParaEliminar();
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "No se puede eliminar: tiene alumnos registrados.", "ERROR", JOptionPane.PLAIN_MESSAGE, iconoError);
+            }
+        }
+    }
+    
+    private ImageIcon cargarIcono(String nombreArchivo, int ancho, int alto) {
+        try {
+            ImageIcon iconoOriginal = new ImageIcon("resources/" + nombreArchivo);
+            Image imgEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
+            return new ImageIcon(imgEscalada);
+        } catch (Exception e) {
+            System.err.println("No se pudo cargar el icono: " + nombreArchivo);
+            return null;
         }
     }
 }
-}
-

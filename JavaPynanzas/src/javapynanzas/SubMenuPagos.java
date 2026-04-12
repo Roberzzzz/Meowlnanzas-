@@ -167,10 +167,10 @@ public class SubMenuPagos extends JFrame {
                 mostrarFormularioPago(rs);
             } else {
                 
-                JOptionPane.showMessageDialog(this, "No hay inscripciones pendientes.");
+                JOptionPane.showMessageDialog(this, "No hay inscripciones pendientes.", "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.PLAIN_MESSAGE, iconoError);
         }
     }
 
@@ -290,7 +290,7 @@ public class SubMenuPagos extends JFrame {
         ItemBanco bancoSeleccionado = (ItemBanco) comboBancos.getSelectedItem();
 
         if (metodo.equals("transferencia") && (bancoSeleccionado == null || bancoSeleccionado.id == 0)) {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione un banco para la transferencia.");
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione un banco para la transferencia.",  "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
             return;
         }
         
@@ -357,7 +357,7 @@ public class SubMenuPagos extends JFrame {
             mostrarResumenFinal(cantCuotas, montoAPagar, nuevoSaldo);
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "ERROR", JOptionPane.PLAIN_MESSAGE, iconoError);
         }
     }
 
