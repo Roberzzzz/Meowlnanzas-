@@ -76,9 +76,20 @@ public class SubMenuInscripciones extends JFrame {
         PanelFondo contenedorFondo = new PanelFondo();
         setContentPane(contenedorFondo);
 
-        panelPrincipal = new JPanel();
+        panelPrincipal = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         panelPrincipal.setLayout(null);
-        panelPrincipal.setBackground(new Color(30, 30, 30, 210));
+        panelPrincipal.setBackground(new Color(35, 35, 35, 215)); 
+        panelPrincipal.setOpaque(false); 
 
         JPanel contenedorCentrado = new JPanel(new GridBagLayout());
         contenedorCentrado.setOpaque(false);
@@ -200,7 +211,7 @@ public class SubMenuInscripciones extends JFrame {
     }
 
     private void mostrarFormularioCompleto() {
-        
+
         // esto es para evitar la superposicion de elementos si se hacen cosas locas de user xD, osea limpia el formulario con respecto a los elementos que tiene no su contenido ojito
         Component[] componentes = panelPrincipal.getComponents();
         for (Component c : componentes) {

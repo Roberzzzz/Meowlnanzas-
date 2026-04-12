@@ -24,10 +24,11 @@ public class MenuRegistro extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (imagen != null) {
-                g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
-                Graphics2D g2d = (Graphics2D) g;
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
                 g2d.setColor(new Color(0, 0, 0, 200)); 
                 g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
             }
         }
     }
@@ -109,8 +110,22 @@ public class MenuRegistro extends JFrame {
     }
 
     private JButton crearBotonHorizontal(String texto, int x, int y, int ancho, int alto) {
-        JButton btn = new JButton(texto);
+        JButton btn = new JButton(texto) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2.setColor(getBackground()); 
+                g2.fillRect(0, 0, getWidth(), getHeight());
+
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+
         btn.setBounds(x, y, ancho, alto); 
+
         btn.setBackground(new Color(60, 60, 60, 180));
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Arial", Font.BOLD, 17));
@@ -118,10 +133,13 @@ public class MenuRegistro extends JFrame {
         btn.setBorder(BorderFactory.createLineBorder(new Color(120, 120, 120), 1));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        btn.setContentAreaFilled(false);
+        btn.setOpaque(false); 
+
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                btn.setBackground(new Color(80, 80, 80));
+                btn.setBackground(new Color(90, 90, 90, 200));
             }
             @Override
             public void mouseExited(MouseEvent e) {

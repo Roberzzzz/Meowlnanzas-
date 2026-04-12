@@ -4,10 +4,12 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseWheelListener;
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.imageio.ImageIO;
 
 public class SubMenuConsultasCursos extends JFrame {
 
@@ -16,16 +18,44 @@ public class SubMenuConsultasCursos extends JFrame {
     private JLabel lblTituloCurso;
     private JTextArea txtResumenInscritos;
     private JScrollPane scrollPrincipal;
+    private boolean hayDeudoresGlobal = false;
+
+    class PanelFondo extends JPanel {
+        private Image imagen;
+        public PanelFondo() {
+            try {
+                imagen = ImageIO.read(new File("resources/meowl_login.jpg"));
+            } catch (Exception e) {
+                setBackground(new Color(26, 26, 26)); 
+            }
+            setLayout(new BorderLayout()); 
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (imagen != null) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
+                g2d.setColor(new Color(0, 0, 0, 190)); 
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
+            }
+        }
+    }
 
     public SubMenuConsultasCursos() {
         setTitle("Pynanzas - Consulta por Curso");
         setSize(950, 700);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
+        
+        PanelFondo fondoMeowl = new PanelFondo();
+        setContentPane(fondoMeowl); 
         setLayout(new BorderLayout());
 
         JPanel pnlNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        pnlNorte.setBackground(new Color(30, 30, 30));
+        pnlNorte.setOpaque(false); 
 
         JButton btnRegresar = new JButton("← Volver");
         estilizarBotonRegresar(btnRegresar);
@@ -52,54 +82,55 @@ public class SubMenuConsultasCursos extends JFrame {
 
         pnlContenedorTablas = new JPanel();
         pnlContenedorTablas.setLayout(new BoxLayout(pnlContenedorTablas, BoxLayout.Y_AXIS));
-        pnlContenedorTablas.setBackground(new Color(26, 26, 26));
+        pnlContenedorTablas.setOpaque(false);
         pnlContenedorTablas.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
         scrollPrincipal = new JScrollPane(pnlContenedorTablas);
+        scrollPrincipal.setOpaque(false);
+        scrollPrincipal.getViewport().setOpaque(false);
         scrollPrincipal.setBorder(null);
         scrollPrincipal.getVerticalScrollBar().setUnitIncrement(25);
 
         lblTituloCurso = new JLabel("  Seleccione un curso para ver el listado", JLabel.LEFT);
         lblTituloCurso.setFont(new Font("Arial", Font.BOLD, 18));
         lblTituloCurso.setForeground(new Color(59, 130, 246));
-        lblTituloCurso.setBackground(Color.BLACK);
-        lblTituloCurso.setOpaque(true);
+        lblTituloCurso.setOpaque(false); 
         lblTituloCurso.setPreferredSize(new Dimension(900, 45));
 
         JPanel pnlCentroMaster = new JPanel(new BorderLayout());
+        pnlCentroMaster.setOpaque(false);
         pnlCentroMaster.add(lblTituloCurso, BorderLayout.NORTH);
         pnlCentroMaster.add(scrollPrincipal, BorderLayout.CENTER);
 
         JPanel pnlSur = new JPanel(new BorderLayout());
-        pnlSur.setBackground(new Color(30, 30, 30));
+        pnlSur.setOpaque(false);
         pnlSur.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY), 
                 "Resumen de Inscripción", 0, 0, null, Color.LIGHT_GRAY));
 
-        txtResumenInscritos = new JTextArea(3, 30);
+        txtResumenInscritos = new JTextArea(3, 30) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                g.setColor(getBackground());
+                g.fillRect(0, 0, getWidth(), getHeight());
+                super.paintComponent(g);
+            }
+        };
+        txtResumenInscritos.setOpaque(false);
         txtResumenInscritos.setEditable(false);
-        txtResumenInscritos.setBackground(new Color(40, 40, 40));
-        txtResumenInscritos.setForeground(Color.LIGHT_GRAY);
-        txtResumenInscritos.setFont(new Font("Monospaced", Font.BOLD, 14));
-        pnlSur.add(new JScrollPane(txtResumenInscritos), BorderLayout.CENTER);
+        txtResumenInscritos.setBackground(new Color(20, 20, 20, 180));
+        txtResumenInscritos.setFont(new Font("Monospaced", Font.BOLD, 15));
+        txtResumenInscritos.setMargin(new Insets(10, 10, 10, 10));
+
+        JScrollPane scrollResumen = new JScrollPane(txtResumenInscritos);
+        scrollResumen.setOpaque(false);
+        scrollResumen.getViewport().setOpaque(false);
+        scrollResumen.setBorder(null);
+        
+        pnlSur.add(scrollResumen, BorderLayout.CENTER);
 
         add(pnlNorte, BorderLayout.NORTH);
         add(pnlCentroMaster, BorderLayout.CENTER);
         add(pnlSur, BorderLayout.SOUTH);
-    }
-
-    private void llenarComboBoxCursos() {
-        Conectar conecta = new Conectar();
-        Connection conn = conecta.getConexion();
-        try {
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT nombre FROM Cursos ORDER BY nombre ASC");
-            while (rs.next()) {
-                cbCursos.addItem(rs.getString(1));
-            }
-            conn.close();
-        } catch (SQLException e) {
-            System.err.println("Error al cargar cursos: " + e.getMessage());
-        }
     }
 
     private void ejecutarConsulta() {
@@ -108,6 +139,7 @@ public class SubMenuConsultasCursos extends JFrame {
 
         pnlContenedorTablas.removeAll();
         lblTituloCurso.setText("  Listado: " + cursoSeleccionado.toUpperCase());
+        hayDeudoresGlobal = false; 
 
         Conectar conecta = new Conectar();
         Connection conn = conecta.getConexion();
@@ -130,15 +162,13 @@ public class SubMenuConsultasCursos extends JFrame {
 
             while (rs.next()) {
                 String estudiante = rs.getString("cedula") + " - " + rs.getString("estudiante");
+                double saldo = rs.getDouble("saldo_restante");
+                
+                if (saldo > 0.01) hayDeudoresGlobal = true;
 
                 String montoRaw = rs.getString("monto_pagado");
-                String saldoRaw = rs.getString("saldo_restante");
-
                 String montoFinal = (montoRaw != null) ? 
                     "Bs. " + String.format(java.util.Locale.US, "%.2f", Double.parseDouble(montoRaw.replace(",", "."))) : "N/A";
-
-                String saldoFinal = (saldoRaw != null) ? 
-                    String.format(java.util.Locale.US, "%.2f", Double.parseDouble(saldoRaw.replace(",", "."))) : "0.00";
 
                 String cuota = rs.getInt("nro_cuota") == 0 ? "Única" : String.valueOf(rs.getInt("nro_cuota"));
 
@@ -146,7 +176,7 @@ public class SubMenuConsultasCursos extends JFrame {
                     rs.getString("fecha_pago") != null ? rs.getString("fecha_pago") : "Sin pagos",
                     montoFinal, 
                     cuota, 
-                    "Bs. " + saldoFinal
+                    "Bs. " + String.format(java.util.Locale.US, "%.2f", saldo)
                 };
 
                 if (!estudiantesMap.containsKey(estudiante)) {
@@ -160,13 +190,34 @@ public class SubMenuConsultasCursos extends JFrame {
                 agregarSeccionEstudiante(est, estudiantesMap.get(est));
             }
 
-            txtResumenInscritos.setText(">>> CURSO: " + cursoSeleccionado + "\n>>> TOTAL ESTUDIANTES: " + totalInscritos);
+            if (hayDeudoresGlobal) {
+                txtResumenInscritos.setForeground(new Color(255, 100, 100));
+                txtResumenInscritos.setText(">>> CURSO: " + cursoSeleccionado + "\n>>> TOTAL ESTUDIANTES: " + totalInscritos + "\n>>> ESTADO: EXISTEN SALDOS PENDIENTES");
+            } else {
+                txtResumenInscritos.setForeground(new Color(100, 255, 100));
+                txtResumenInscritos.setText(">>> CURSO: " + cursoSeleccionado + "\n>>> TOTAL ESTUDIANTES: " + totalInscritos + "\n>>> ESTADO: TODOS SOLVENTES");
+            }
 
             conn.close();
             pnlContenedorTablas.revalidate();
             pnlContenedorTablas.repaint();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }
+
+    private void llenarComboBoxCursos() {
+        Conectar conecta = new Conectar();
+        Connection conn = conecta.getConexion();
+        try {
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT nombre FROM Cursos ORDER BY nombre ASC");
+            while (rs.next()) {
+                cbCursos.addItem(rs.getString(1));
+            }
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Error al cargar cursos: " + e.getMessage());
         }
     }
 
@@ -187,15 +238,28 @@ public class SubMenuConsultasCursos extends JFrame {
         pnlEst.setOpaque(false);
 
         JButton btnBarra = new JButton(" ►  " + nombreEstudiante);
+        btnBarra.setContentAreaFilled(false);
+        btnBarra.setOpaque(false);
+        btnBarra.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(c.getBackground());
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 5, 5);
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
         btnBarra.setHorizontalAlignment(SwingConstants.LEFT);
         btnBarra.setFocusPainted(false);
         btnBarra.setFont(new Font("Arial", Font.BOLD, 13));
 
         if (saldoRestante <= 0.01) {
-            btnBarra.setBackground(new Color(34, 139, 34)); // Verde
+            btnBarra.setBackground(new Color(34, 139, 34, 200)); 
             btnBarra.setForeground(Color.WHITE);
         } else {
-            btnBarra.setBackground(new Color(150, 40, 40)); // Rojo
+            btnBarra.setBackground(new Color(150, 40, 40, 200)); 
             btnBarra.setForeground(new Color(255, 200, 200));
         }
 
@@ -215,6 +279,8 @@ public class SubMenuConsultasCursos extends JFrame {
         scrollTabla.setMaximumSize(new Dimension(Integer.MAX_VALUE, alturaTotal));
         scrollTabla.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         scrollTabla.setVisible(false);
+        scrollTabla.setOpaque(false);
+        scrollTabla.getViewport().setOpaque(false);
 
         MouseWheelListener red = e -> scrollPrincipal.dispatchEvent(SwingUtilities.convertMouseEvent(e.getComponent(), e, scrollPrincipal));
         tabla.addMouseWheelListener(red);
@@ -246,15 +312,43 @@ public class SubMenuConsultasCursos extends JFrame {
     }
 
     private void estilizarBotonRegresar(JButton b) {
-        b.setBackground(new Color(70, 70, 70));
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+        b.setFocusPainted(false);
         b.setForeground(Color.WHITE);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setBackground(new Color(70, 70, 70, 180));
+        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(c.getBackground());
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
     }
 
     private void estilizarBotonBusqueda(JButton b) {
-        b.setBackground(new Color(59, 130, 246));
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+        b.setFocusPainted(false);
         b.setForeground(Color.WHITE);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setBackground(new Color(59, 130, 246));
+        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(c.getBackground());
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
     }
 
     private void estilizarCombo(JComboBox<String> c) {

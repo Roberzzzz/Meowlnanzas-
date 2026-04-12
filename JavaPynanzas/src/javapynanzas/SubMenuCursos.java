@@ -62,11 +62,21 @@ public class SubMenuCursos extends JFrame {
         });
         contenedorFondo.add(btnVolver);
 
-        // Panel Central Translúcido
-        panelPrincipal = new JPanel();
+        panelPrincipal = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
         panelPrincipal.setLayout(null);
         panelPrincipal.setPreferredSize(new Dimension(550, 580));
         panelPrincipal.setBackground(new Color(35, 35, 35, 220));
+        panelPrincipal.setOpaque(false);
 
         // Centrar el panel principal usando GridBagLayout
         JPanel contenedorCentrado = new JPanel(new GridBagLayout());
@@ -106,16 +116,19 @@ public class SubMenuCursos extends JFrame {
         panelEliminar.setVisible(!esRegistrar);
 
         if (esRegistrar) {
-            btnTabRegistrar.setBackground(new Color(59, 130, 246)); // Azul
+            btnTabRegistrar.setBackground(new Color(59, 130, 246));
             btnTabRegistrar.setForeground(Color.WHITE);
             btnTabEliminar.setBackground(new Color(50, 50, 50));
             btnTabEliminar.setForeground(Color.GRAY);
         } else {
-            btnTabEliminar.setBackground(new Color(185, 28, 28)); // Rojo
+            btnTabEliminar.setBackground(new Color(185, 28, 28));
             btnTabEliminar.setForeground(Color.WHITE);
             btnTabRegistrar.setBackground(new Color(50, 50, 50));
             btnTabRegistrar.setForeground(Color.GRAY);
         }
+
+        panelPrincipal.revalidate();
+        panelPrincipal.repaint();
     }
 
     private void crearPanelRegistrar() {

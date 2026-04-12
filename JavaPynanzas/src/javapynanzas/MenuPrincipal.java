@@ -67,10 +67,11 @@ public class MenuPrincipal extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (imagen != null) {
-                g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
-                Graphics2D g2d = (Graphics2D) g;
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
                 g2d.setColor(new Color(0, 0, 0, 170)); 
                 g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
             }
         }
     }

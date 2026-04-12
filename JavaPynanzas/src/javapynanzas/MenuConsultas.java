@@ -82,6 +82,7 @@ public class MenuConsultas extends JFrame {
         btnVolver.setFocusPainted(false);
         btnVolver.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
         btnVolver.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
         
         btnVolver.addActionListener(e -> {
             MenuPrincipal principal = new MenuPrincipal();
@@ -95,7 +96,21 @@ public class MenuConsultas extends JFrame {
     }
 
     private JButton crearBotonMenu(String texto, int x, int y, int ancho, int alto) {
-        JButton btn = new JButton("<html><center>" + texto + "</center></html>");
+
+        JButton btn = new JButton("<html><center>" + texto + "</center></html>") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2.setColor(getBackground());
+                g2.fillRect(0, 0, getWidth(), getHeight());
+
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+
         btn.setBounds(x, y, ancho, alto);
         btn.setBackground(new Color(60, 60, 60, 160));
         btn.setForeground(Color.WHITE);
@@ -104,10 +119,13 @@ public class MenuConsultas extends JFrame {
         btn.setBorder(BorderFactory.createLineBorder(new Color(150, 150, 150), 1));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        btn.setContentAreaFilled(false);
+        btn.setOpaque(false);
+
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                btn.setBackground(new Color(59, 130, 246)); 
+                btn.setBackground(new Color(59, 130, 246, 200)); 
                 btn.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1));
             }
             @Override

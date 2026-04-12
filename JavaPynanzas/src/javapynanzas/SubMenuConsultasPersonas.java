@@ -3,6 +3,10 @@ package javapynanzas;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import javax.imageio.ImageIO;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -15,31 +19,61 @@ public class SubMenuConsultasPersonas extends JFrame {
     private JLabel lblNombrePersona;
     private JTextArea txtSaldoPendiente;
 
+    class PanelFondo extends JPanel {
+        private Image imagen;
+        public PanelFondo() {
+            try {
+                imagen = ImageIO.read(new File("resources/meowl_login.jpg"));
+            } catch (Exception e) {
+                setBackground(new Color(26, 26, 26)); 
+            }
+            setLayout(new BorderLayout()); 
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (imagen != null) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
+                g2d.setColor(new Color(0, 0, 0, 190)); 
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
+            }
+        }
+    }
+
     public SubMenuConsultasPersonas() {
         setTitle("Pynanzas - Historial Detallado");
         setSize(950, 700);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+        setResizable(false);
+
+        PanelFondo contenedorPrincipal = new PanelFondo();
 
         JPanel pnlNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        pnlNorte.setBackground(new Color(30, 30, 30));
+        pnlNorte.setOpaque(false);
         
         JButton btnRegresar = new JButton("← Volver");
-        estilizarBotonRegresar(btnRegresar);
+        estilizarBotonSecundario(btnRegresar);
         btnRegresar.addActionListener(e -> {
             MenuConsultas menu = new MenuConsultas();
+            menu.setLocation(this.getLocation());
             menu.setVisible(true);
             this.dispose();
         });
         
         JLabel lblCedula = new JLabel("Cédula:");
+        lblCedula.setFont(new Font("Arial", Font.BOLD, 14));
         lblCedula.setForeground(Color.WHITE);
+        
         txtCedula = new JTextField(15);
         estilizarInput(txtCedula);
 
         JButton btnBuscar = new JButton("Consultar Estado");
-        estilizarBotonBusqueda(btnBuscar);
+        estilizarBotonPrincipal(btnBuscar);
+        btnBuscar.addActionListener(e -> ejecutarConsulta());
         
         pnlNorte.add(btnRegresar);
         pnlNorte.add(lblCedula);
@@ -48,50 +82,53 @@ public class SubMenuConsultasPersonas extends JFrame {
 
         pnlContenedorTablas = new JPanel();
         pnlContenedorTablas.setLayout(new BoxLayout(pnlContenedorTablas, BoxLayout.Y_AXIS));
-        pnlContenedorTablas.setBackground(new Color(26, 26, 26));
+        pnlContenedorTablas.setOpaque(false);
 
         JScrollPane scrollPrincipal = new JScrollPane(pnlContenedorTablas);
+        scrollPrincipal.setOpaque(false);
+        scrollPrincipal.getViewport().setOpaque(false);
         scrollPrincipal.setBorder(null);
         scrollPrincipal.getVerticalScrollBar().setUnitIncrement(16);
 
         lblNombrePersona = new JLabel("  Seleccione un cliente para ver sus cursos", JLabel.LEFT);
         lblNombrePersona.setFont(new Font("Arial", Font.BOLD, 18));
         lblNombrePersona.setForeground(new Color(59, 130, 246)); 
-        lblNombrePersona.setBackground(Color.BLACK);            
-        lblNombrePersona.setOpaque(true);                     
         lblNombrePersona.setPreferredSize(new Dimension(900, 50)); 
 
         JPanel pnlCentroMaster = new JPanel(new BorderLayout());
+        pnlCentroMaster.setOpaque(false);
         pnlCentroMaster.add(lblNombrePersona, BorderLayout.NORTH);
         pnlCentroMaster.add(scrollPrincipal, BorderLayout.CENTER);
 
         JPanel pnlSur = new JPanel(new BorderLayout());
-        pnlSur.setBackground(new Color(30, 30, 30));
-        pnlSur.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY), 
-                "Resumen Financiero Total", 0, 0, null, Color.LIGHT_GRAY));
+        pnlSur.setOpaque(false);
+        pnlSur.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)), 
+                "Resumen Financiero Total", 0, 0, new Font("Arial", Font.BOLD, 12), Color.LIGHT_GRAY));
 
-        txtSaldoPendiente = new JTextArea(3, 30);
+        txtSaldoPendiente = new JTextArea(3, 30) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                g.setColor(getBackground());
+                g.fillRect(0, 0, getWidth(), getHeight());
+                super.paintComponent(g);
+            }
+        };
+        txtSaldoPendiente.setOpaque(false); 
         txtSaldoPendiente.setEditable(false);
-        txtSaldoPendiente.setBackground(new Color(40, 40, 40));
+        txtSaldoPendiente.setBackground(new Color(20, 20, 20, 180));
+        txtSaldoPendiente.setForeground(Color.WHITE);
         txtSaldoPendiente.setFont(new Font("Monospaced", Font.BOLD, 14));
+        txtSaldoPendiente.setMargin(new Insets(10, 10, 10, 10));
+
         pnlSur.add(new JScrollPane(txtSaldoPendiente), BorderLayout.CENTER);
 
-        btnBuscar.addActionListener(e -> ejecutarConsulta());
+        contenedorPrincipal.add(pnlNorte, BorderLayout.NORTH);
+        contenedorPrincipal.add(pnlCentroMaster, BorderLayout.CENTER);
+        contenedorPrincipal.add(pnlSur, BorderLayout.SOUTH);
         
-        add(pnlNorte, BorderLayout.NORTH);
-        add(pnlCentroMaster, BorderLayout.CENTER);
-        add(pnlSur, BorderLayout.SOUTH);
+        add(contenedorPrincipal);
     }
-    
-    private void estilizarBotonRegresar(JButton b) {
-        b.setBackground(new Color(70, 70, 70));
-        b.setForeground(Color.WHITE);
-        b.setFocusPainted(false);
-        b.setBorder(BorderFactory.createEmptyBorder(7, 15, 7, 15));
-        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        b.setFont(new Font("Arial", Font.BOLD, 12));
-    }
-    
+
     private void ejecutarConsulta() {
         String cedula = txtCedula.getText().trim();
         if (cedula.isEmpty()) return;
@@ -110,7 +147,7 @@ public class SubMenuConsultasPersonas extends JFrame {
             ResultSet rs1 = stmt.executeQuery(sqlPer);
             if (!rs1.next()) {
                 lblNombrePersona.setText("  Persona no encontrada");
-                revalidate(); repaint(); return;
+                pnlContenedorTablas.revalidate(); pnlContenedorTablas.repaint(); return;
             }
             lblNombrePersona.setText("  Historial de: " + rs1.getString(1));
 
@@ -168,86 +205,152 @@ public class SubMenuConsultasPersonas extends JFrame {
     }
 
     private void agregarSeccionCurso(String nombreCurso, ArrayList<Object[]> datos) {
-            double ultimoSaldo = 0;
-            if (!datos.isEmpty()) {
-                Object[] ultimaFila = datos.get(datos.size() - 1);
-                String saldoStr = ultimaFila[5].toString().replace("Bs. ", "");
-                ultimoSaldo = Double.parseDouble(saldoStr);
-            }
-
-            JPanel pnlCurso = new JPanel(new BorderLayout());
-            pnlCurso.setOpaque(false); 
-
-            JButton btnBarra = new JButton(" ►  CURSO: " + nombreCurso.toUpperCase());
-            btnBarra.setHorizontalAlignment(SwingConstants.LEFT);
-            btnBarra.setFocusPainted(false);
-            btnBarra.setFont(new Font("Arial", Font.BOLD, 13));
-
-            if (ultimoSaldo <= 0.01) {
-                btnBarra.setBackground(new Color(34, 139, 34)); 
-                btnBarra.setForeground(Color.WHITE);
-            } else {
-                btnBarra.setBackground(new Color(150, 40, 40));
-                btnBarra.setForeground(new Color(255, 200, 200));
-            }
-
-            btnBarra.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(60, 60, 60)),
-                    BorderFactory.createEmptyBorder(12, 15, 12, 15)));
-
-            String[] col = {"Fecha", "Monto", "Cuota", "Método", "Banco", "Saldo"};
-            DefaultTableModel mod = new DefaultTableModel(col, 0);
-            for (Object[] d : datos) mod.addRow(d);
-
-            JTable tabla = new JTable(mod);
-            configurarTabla(tabla);
-
-            JScrollPane scrollTabla = new JScrollPane(tabla);
-            scrollTabla.getViewport().setBackground(new Color(30, 30, 30)); 
-            scrollTabla.setBackground(new Color(30, 30, 30));
-            scrollTabla.setBorder(BorderFactory.createLineBorder(new Color(50, 50, 50)));
-            scrollTabla.setPreferredSize(new Dimension(900, 150));
-            scrollTabla.setVisible(false);
-
-            btnBarra.addActionListener(e -> {
-                boolean estaVisible = scrollTabla.isVisible();
-                scrollTabla.setVisible(!estaVisible);
-                btnBarra.setText((estaVisible ? " ► " : " ▼ ") + " CURSO: " + nombreCurso.toUpperCase());
-
-                pnlContenedorTablas.revalidate();
-                pnlContenedorTablas.repaint();
-            });
-
-            pnlCurso.add(btnBarra, BorderLayout.NORTH);
-            pnlCurso.add(scrollTabla, BorderLayout.CENTER);
-
-            pnlCurso.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
-
-            pnlContenedorTablas.add(pnlCurso);
+        double ultimoSaldo = 0;
+        if (!datos.isEmpty()) {
+            Object[] ultimaFila = datos.get(datos.size() - 1);
+            String saldoStr = ultimaFila[5].toString().replace("Bs. ", "");
+            ultimoSaldo = Double.parseDouble(saldoStr);
         }
 
-        private void configurarTabla(JTable t) {
-            t.setBackground(new Color(35, 35, 35)); 
-            t.setForeground(Color.WHITE);
-            t.setGridColor(new Color(60, 60, 60));
-            t.setRowHeight(28);
-            t.setFillsViewportHeight(true); 
+        JPanel pnlCurso = new JPanel(new BorderLayout());
+        pnlCurso.setOpaque(false); 
 
-            t.getTableHeader().setBackground(new Color(50, 50, 50));
-            t.getTableHeader().setForeground(new Color(59, 130, 246)); 
-            t.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        }
+        JButton btnBarra = new JButton(" ►  CURSO: " + nombreCurso.toUpperCase());
+        btnBarra.setContentAreaFilled(false); 
+        btnBarra.setOpaque(false);           
+        btnBarra.setHorizontalAlignment(SwingConstants.LEFT);
+        btnBarra.setFocusPainted(false);
+        btnBarra.setFont(new Font("Arial", Font.BOLD, 13));
+        
+        Color colorFondo = (ultimoSaldo <= 0.01) ? new Color(34, 139, 34, 180) : new Color(150, 40, 40, 180);
+        btnBarra.setBackground(colorFondo);
+        btnBarra.setForeground(Color.WHITE);
+        btnBarra.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(100, 100, 100)),
+                BorderFactory.createEmptyBorder(12, 15, 12, 15)));
+        
+        btnBarra.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(c.getBackground());
+                g2.fillRect(0, 0, c.getWidth(), c.getHeight());
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
+        
+        String[] col = {"Fecha", "Monto", "Cuota", "Método", "Banco", "Saldo"};
+        DefaultTableModel mod = new DefaultTableModel(col, 0);
+        for (Object[] d : datos) mod.addRow(d);
+
+        JTable tabla = new JTable(mod);
+        configurarTabla(tabla);
+
+        JScrollPane scrollTabla = new JScrollPane(tabla);
+        scrollTabla.getViewport().setBackground(new Color(30, 30, 30)); 
+        scrollTabla.setBorder(BorderFactory.createLineBorder(new Color(80, 80, 80)));
+        scrollTabla.setPreferredSize(new Dimension(900, 150));
+        scrollTabla.setVisible(false);
+
+        btnBarra.addActionListener(e -> {
+            boolean estaVisible = scrollTabla.isVisible();
+            scrollTabla.setVisible(!estaVisible);
+            btnBarra.setText((estaVisible ? " ► " : " ▼ ") + " CURSO: " + nombreCurso.toUpperCase());
+            pnlContenedorTablas.revalidate();
+        });
+
+        pnlCurso.add(btnBarra, BorderLayout.NORTH);
+        pnlCurso.add(scrollTabla, BorderLayout.CENTER);
+        pnlCurso.setBorder(BorderFactory.createEmptyBorder(0, 5, 10, 5));
+
+        pnlContenedorTablas.add(pnlCurso);
+    }
+
+    private void configurarTabla(JTable t) {
+        t.setBackground(new Color(35, 35, 35)); 
+        t.setForeground(Color.WHITE);
+        t.setGridColor(new Color(60, 60, 60));
+        t.setRowHeight(28);
+        t.getTableHeader().setBackground(new Color(50, 50, 50));
+        t.getTableHeader().setForeground(new Color(59, 130, 246)); 
+        t.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        t.setFont(new Font("Arial", Font.PLAIN, 12));
+    }
 
     private void estilizarInput(JTextField t) {
-        t.setBackground(new Color(50, 50, 50));
+        t.setBackground(new Color(45, 45, 45));
         t.setForeground(Color.WHITE);
         t.setCaretColor(Color.WHITE);
-        t.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
+        t.setFont(new Font("Arial", Font.PLAIN, 14));
+        t.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(100, 100, 100)),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)));
     }
 
-    private void estilizarBotonBusqueda(JButton b) {
-        b.setBackground(new Color(59, 130, 246));
-        b.setForeground(Color.WHITE);
+    private void estilizarBotonPrincipal(JButton b) {
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+        b.setFocusPainted(false);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setFont(new Font("Arial", Font.BOLD, 13));
+        b.setForeground(Color.WHITE);
+        b.setBackground(new Color(59, 130, 246)); 
+
+        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                g2.setColor(c.getBackground());
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
+                
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
+        
+        b.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
     }
+
+    private void estilizarBotonSecundario(JButton b) {
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+        b.setFocusPainted(false);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setFont(new Font("Arial", Font.BOLD, 12));
+        b.setForeground(Color.WHITE);
+        b.setBackground(new Color(60, 60, 60, 180)); 
+
+        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                g2.setColor(c.getBackground());
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
+                
+                g2.dispose();
+                super.paint(g, c);
+            }
+        });
+
+
+        b.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                b.setBackground(new Color(90, 90, 90, 210));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                b.setBackground(new Color(60, 60, 60, 180));
+            }
+        });
+
+        b.setBorder(BorderFactory.createEmptyBorder(7, 15, 7, 15));
+    }
+    
+    
 }
