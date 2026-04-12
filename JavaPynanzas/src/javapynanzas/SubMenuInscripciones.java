@@ -316,11 +316,20 @@ public class SubMenuInscripciones extends JFrame {
             while (rs.next()) {
                 String nombre = rs.getString("nombre");
                 int id = rs.getInt("id_curso");
-                double costo = rs.getDouble("costo_curso");
-                String textoLabel = nombre + " (Bs. " + String.format("%.2f", costo) + ")";
+
+                String costoStr = rs.getString("costo_curso");
+                double costo = 0;
+
+                if (costoStr != null) {
+                    costo = Double.parseDouble(costoStr.replace(",", "."));
+                }
+
+                String textoLabel = nombre + " (Bs. " + String.format(java.util.Locale.US, "%.2f", costo) + ")";
                 comboCursos.addItem(new Item(id, textoLabel, costo));
             }
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException | NumberFormatException e) { 
+            System.err.println("Error cargando cursos: " + e.getMessage()); 
+        }
     }
 
     private void cargarBancos() {
@@ -344,10 +353,11 @@ public class SubMenuInscripciones extends JFrame {
         }
 
         double costo = cursoSeleccionado.valorExtra;
+        
         if (modalidad.equals("total")) {
-            lblMontoCalculado.setText("Monto total a pagar: Bs. " + String.format("%.2f", costo));
+            lblMontoCalculado.setText("Monto total a pagar: Bs. " + String.format(java.util.Locale.US, "%.2f", costo));
         } else {
-            lblMontoCalculado.setText("Monto de cuota 1 (de 3): Bs. " + String.format("%.2f", costo / 3));
+            lblMontoCalculado.setText("Monto de cuota 1 (de 3): Bs. " + String.format(java.util.Locale.US, "%.2f", costo / 3));
         }
     }
 

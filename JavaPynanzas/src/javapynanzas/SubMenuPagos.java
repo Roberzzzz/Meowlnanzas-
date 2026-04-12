@@ -61,7 +61,7 @@ public class SubMenuPagos extends JFrame {
 
         @Override
         public String toString() {
-            return nombreCurso + " (Pendiente: Bs. " + String.format("%.2f", saldoRestante) + ")";
+            return nombreCurso + " (Pendiente: Bs. " + String.format(java.util.Locale.US, "%.2f", saldoRestante) + ")";
         }
     }
 
@@ -149,10 +149,9 @@ public class SubMenuPagos extends JFrame {
     private void buscarAlumno() {
         String cedula = txtCedula.getText().trim();
         Conectar conecta = new Conectar();
-        
-        // SQL DINÁMICO: Traemos el costo_curso de la tabla Cursos
+
         String sql = "SELECT p.nombre, p.apellido, i.id_inscripcion, c.nombre as curso, " +
-                     "i.saldo_restante, c.costo_curso " +
+                     "i.saldo_restante, c.costo_curso " + // Seguimos pidiendo los campos igual
                      "FROM personas p " +
                      "JOIN Inscripciones i ON p.id_persona = i.id_persona " +
                      "JOIN Cursos c ON i.id_curso = c.id_curso " +
@@ -166,7 +165,6 @@ public class SubMenuPagos extends JFrame {
             if (rs.next()) {
                 mostrarFormularioPago(rs);
             } else {
-                
                 JOptionPane.showMessageDialog(this, "No hay inscripciones pendientes.", "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
             }
         } catch (SQLException e) {
@@ -174,7 +172,7 @@ public class SubMenuPagos extends JFrame {
         }
     }
 
- private void mostrarFormularioPago(ResultSet rs) throws SQLException {
+private void mostrarFormularioPago(ResultSet rs) throws SQLException {
     String nombreCompleto = rs.getString("nombre") + " " + rs.getString("apellido");
     panelPrincipal.removeAll();
     
@@ -185,14 +183,20 @@ public class SubMenuPagos extends JFrame {
     panelPrincipal.add(lblNombreAlumno);
 
     comboCursos = new JComboBox<>();
-    do {
-        comboCursos.addItem(new ItemCurso(
-            rs.getInt("id_inscripcion"), 
-            rs.getString("curso"), 
-            rs.getDouble("saldo_restante"),
-            rs.getDouble("costo_curso")
-        ));
-    } while (rs.next());
+        do {
+            String saldoStr = rs.getString("saldo_restante");
+            String costoTotalStr = rs.getString("costo_curso");
+
+            double saldoDbl = (saldoStr != null) ? Double.parseDouble(saldoStr.replace(",", ".")) : 0;
+            double costoTotalDbl = (costoTotalStr != null) ? Double.parseDouble(costoTotalStr.replace(",", ".")) : 0;
+
+            comboCursos.addItem(new ItemCurso(
+                rs.getInt("id_inscripcion"), 
+                rs.getString("curso"), 
+                saldoDbl,
+                costoTotalDbl
+            ));
+        } while (rs.next());
     
     comboCursos.setBounds(100, 80, 400, 30);
     comboCursos.addActionListener(e -> recalcularLogicaCuotas());
@@ -311,97 +315,71 @@ public class SubMenuPagos extends JFrame {
     private void actualizarEtiquetaMonto() {
         if (comboCuotas.getSelectedItem() != null) {
             int cantidad = (int) comboCuotas.getSelectedItem();
-            lblMontoRequerido.setText("Monto total a pagar: Bs. " + String.format("%.2f", cantidad * costoCuotaIndividual));
+            double total = cantidad * costoCuotaIndividual;
+            lblMontoRequerido.setText("Monto total a pagar: Bs. " + String.format(java.util.Locale.US, "%.2f", total));
         }
     }
 
     private void ejecutarPago() {
         ItemCurso item = (ItemCurso) comboCursos.getSelectedItem();
         int cantCuotas = (int) comboCuotas.getSelectedItem();
-        double montoAPagar = cantCuotas * costoCuotaIndividual;
-        double nuevoSaldo = item.saldoRestante - montoAPagar;
+
+        double montoAPagar = Math.round((cantCuotas * costoCuotaIndividual) * 100.0) / 100.0;
+        double nuevoSaldo = Math.round((item.saldoRestante - montoAPagar) * 100.0) / 100.0;
+
         if (nuevoSaldo < 0.01) {
-        nuevoSaldo = 0.00;
+            nuevoSaldo = 0.00;
         }
-        
+
         String metodo = (String) comboMetodo.getSelectedItem();
         ItemBanco bancoSeleccionado = (ItemBanco) comboBancos.getSelectedItem();
 
         if (metodo.equals("transferencia") && (bancoSeleccionado == null || bancoSeleccionado.id == 0)) {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione un banco para la transferencia.",  "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione un banco para la transferencia.", "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
             return;
         }
-        
-        Integer idBanco = null;
-        
-        if (metodo.equals("transferencia")) {
-            ItemBanco bancoItem = (ItemBanco) comboBancos.getSelectedItem();
-            if (bancoItem.id == 0) {
-                JOptionPane.showMessageDialog(this, "Debe seleccionar un banco para transferencias.", "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
-                return;
-            }
-            idBanco = bancoItem.id;
-        }
+
+        Integer idBanco = (metodo.equals("transferencia")) ? bancoSeleccionado.id : null;
 
         Conectar conecta = new Conectar();
         try (Connection con = conecta.getConexion()) {
             con.setAutoCommit(false);
 
-            String nroReferencia = null;
-            if (metodo.equals("transferencia")) {
-                nroReferencia = generarReferenciaAleatoria();
-            }else{
-                nroReferencia = "No aplica";
-            }
-            String sqlPago = "INSERT INTO Pagos (id_inscripcion, fecha_pago, monto_pagado, id_banco , nro_cuota, metodo_pago, observaciones, nro_referencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            String nroReferencia = metodo.equals("transferencia") ? generarReferenciaAleatoria() : "No aplica";
+
+            // 1. Insertar el Pago
+            String sqlPago = "INSERT INTO Pagos (id_inscripcion, fecha_pago, monto_pagado, id_banco, nro_cuota, metodo_pago, observaciones, nro_referencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement pstP = con.prepareStatement(sqlPago)) {
                 pstP.setInt(1, item.idInscripcion);
                 pstP.setString(2, java.time.LocalDate.now().toString());
-                pstP.setDouble(3, montoAPagar);
-                pstP.setObject(4, idBanco);
+                pstP.setDouble(3, montoAPagar); // JDBC envía el double correctamente
+                if (idBanco == null) pstP.setNull(4, Types.INTEGER); else pstP.setInt(4, idBanco);
                 pstP.setInt(5, cantCuotas); 
-                pstP.setString(6, (String) comboMetodo.getSelectedItem());
+                pstP.setString(6, metodo);
                 pstP.setString(7, txtObservaciones.getText());
                 pstP.setString(8, nroReferencia);
                 pstP.executeUpdate();
             }
-            String cuotasSTR = Integer.toString(cantCuotas);
-            String bancoSTR ="";
-            if (idBanco != null){
-            bancoSTR = Integer.toString(idBanco);
-                    }else{
-                bancoSTR = "No aplica";
-            }
-    
-            GenPdf.generarReciboPago(
-                item.idInscripcion, 
-                cuotasSTR, 
-                lblNombreAlumno.getText(), 
-                txtCedula.getText(), 
-                item.nombreCurso,
-                (String) comboMetodo.getSelectedItem(), 
-                montoAPagar, 
-                metodo, 
-                bancoSTR, 
-                java.time.LocalDate.now().toString(), 
-                txtObservaciones.getText(), 
-                nroReferencia
-            );
 
-            // 2. Actualizar Inscripción
+            // 2. ACTUALIZAR INSCRIPCIÓN (El saldo se guarda sin problemas)
             String sqlIns = "UPDATE Inscripciones SET saldo_restante = ?, estado = ? WHERE id_inscripcion = ?";
             try (PreparedStatement pstI = con.prepareStatement(sqlIns)) {
-                pstI.setDouble(1, nuevoSaldo);
+                pstI.setDouble(1, nuevoSaldo); // JDBC maneja el formato decimal aquí
                 pstI.setString(2, (nuevoSaldo <= 0.05) ? "finalizado" : "activa");
                 pstI.setInt(3, item.idInscripcion);
                 pstI.executeUpdate();
             }
 
-            con.commit();
+            con.commit(); // Todo bien, guardamos cambios
+
+            // Generar PDF y mostrar resumen
+            String bancoNombre = (idBanco != null) ? bancoSeleccionado.nombre : "No aplica";
+            GenPdf.generarReciboPago(item.idInscripcion, String.valueOf(cantCuotas), lblNombreAlumno.getText(), txtCedula.getText(), item.nombreCurso, metodo, montoAPagar, metodo, bancoNombre, java.time.LocalDate.now().toString(), txtObservaciones.getText(), nroReferencia);
+
             mostrarResumenFinal(cantCuotas, montoAPagar, nuevoSaldo);
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "ERROR", JOptionPane.PLAIN_MESSAGE, iconoError);
+            JOptionPane.showMessageDialog(this, "Error al procesar: " + e.getMessage(), "ERROR", JOptionPane.PLAIN_MESSAGE, iconoError);
         }
     }
 

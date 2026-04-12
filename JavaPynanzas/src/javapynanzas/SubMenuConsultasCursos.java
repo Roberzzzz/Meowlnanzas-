@@ -24,7 +24,6 @@ public class SubMenuConsultasCursos extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // --- Panel Norte: Selector de Curso ---
         JPanel pnlNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
         pnlNorte.setBackground(new Color(30, 30, 30));
 
@@ -51,7 +50,6 @@ public class SubMenuConsultasCursos extends JFrame {
         pnlNorte.add(cbCursos);
         pnlNorte.add(btnConsultar);
 
-        // --- Panel Centro: Scroll Principal ---
         pnlContenedorTablas = new JPanel();
         pnlContenedorTablas.setLayout(new BoxLayout(pnlContenedorTablas, BoxLayout.Y_AXIS));
         pnlContenedorTablas.setBackground(new Color(26, 26, 26));
@@ -72,7 +70,6 @@ public class SubMenuConsultasCursos extends JFrame {
         pnlCentroMaster.add(lblTituloCurso, BorderLayout.NORTH);
         pnlCentroMaster.add(scrollPrincipal, BorderLayout.CENTER);
 
-        // --- Panel Sur: Resumen ---
         JPanel pnlSur = new JPanel(new BorderLayout());
         pnlSur.setBackground(new Color(30, 30, 30));
         pnlSur.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY), 
@@ -111,12 +108,11 @@ public class SubMenuConsultasCursos extends JFrame {
 
         pnlContenedorTablas.removeAll();
         lblTituloCurso.setText("  Listado: " + cursoSeleccionado.toUpperCase());
-        
+
         Conectar conecta = new Conectar();
         Connection conn = conecta.getConexion();
-        
+
         try {
-            // Consulta de personas inscritas en ese curso y sus pagos
             String sql = "SELECT pe.cedula, pe.nombre || ' ' || pe.apellido as estudiante, " +
                          "p.fecha_pago, p.monto_pagado, p.nro_cuota, i.saldo_restante " +
                          "FROM Inscripciones i " +
@@ -134,13 +130,23 @@ public class SubMenuConsultasCursos extends JFrame {
 
             while (rs.next()) {
                 String estudiante = rs.getString("cedula") + " - " + rs.getString("estudiante");
-                String monto = rs.getString("monto_pagado") != null ? "Bs. " + rs.getString("monto_pagado") : "N/A";
+
+                String montoRaw = rs.getString("monto_pagado");
+                String saldoRaw = rs.getString("saldo_restante");
+
+                String montoFinal = (montoRaw != null) ? 
+                    "Bs. " + String.format(java.util.Locale.US, "%.2f", Double.parseDouble(montoRaw.replace(",", "."))) : "N/A";
+
+                String saldoFinal = (saldoRaw != null) ? 
+                    String.format(java.util.Locale.US, "%.2f", Double.parseDouble(saldoRaw.replace(",", "."))) : "0.00";
+
                 String cuota = rs.getInt("nro_cuota") == 0 ? "Única" : String.valueOf(rs.getInt("nro_cuota"));
-                String saldo = String.format(java.util.Locale.US, "%.2f", rs.getDouble("saldo_restante"));
 
                 Object[] fila = {
                     rs.getString("fecha_pago") != null ? rs.getString("fecha_pago") : "Sin pagos",
-                    monto, cuota, "Bs. " + saldo
+                    montoFinal, 
+                    cuota, 
+                    "Bs. " + saldoFinal
                 };
 
                 if (!estudiantesMap.containsKey(estudiante)) {
@@ -155,7 +161,7 @@ public class SubMenuConsultasCursos extends JFrame {
             }
 
             txtResumenInscritos.setText(">>> CURSO: " + cursoSeleccionado + "\n>>> TOTAL ESTUDIANTES: " + totalInscritos);
-            
+
             conn.close();
             pnlContenedorTablas.revalidate();
             pnlContenedorTablas.repaint();
@@ -165,11 +171,16 @@ public class SubMenuConsultasCursos extends JFrame {
     }
 
     private void agregarSeccionEstudiante(String nombreEstudiante, ArrayList<Object[]> datos) {
-        // El último registro del array tiene el saldo más reciente
         double saldoRestante = 0;
         if (!datos.isEmpty()) {
-            String s = datos.get(datos.size() - 1)[3].toString().replace("Bs. ", "");
-            saldoRestante = Double.parseDouble(s);
+            String s = datos.get(datos.size() - 1)[3].toString()
+                        .replace("Bs. ", "")
+                        .replace(",", ".");
+            try {
+                saldoRestante = Double.parseDouble(s);
+            } catch (NumberFormatException e) {
+                saldoRestante = 0;
+            }
         }
 
         JPanel pnlEst = new JPanel(new BorderLayout());
@@ -180,7 +191,6 @@ public class SubMenuConsultasCursos extends JFrame {
         btnBarra.setFocusPainted(false);
         btnBarra.setFont(new Font("Arial", Font.BOLD, 13));
 
-        // Color según deuda
         if (saldoRestante <= 0.01) {
             btnBarra.setBackground(new Color(34, 139, 34)); // Verde
             btnBarra.setForeground(Color.WHITE);
@@ -193,7 +203,6 @@ public class SubMenuConsultasCursos extends JFrame {
                 BorderFactory.createLineBorder(new Color(60, 60, 60)),
                 BorderFactory.createEmptyBorder(12, 15, 12, 15)));
 
-        // Tabla de pagos de ese estudiante
         String[] col = {"Fecha Pago", "Monto", "Cuota", "Saldo Restante"};
         DefaultTableModel mod = new DefaultTableModel(col, 0);
         for (Object[] d : datos) mod.addRow(d);
@@ -207,7 +216,6 @@ public class SubMenuConsultasCursos extends JFrame {
         scrollTabla.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         scrollTabla.setVisible(false);
 
-        // Redirección de scroll
         MouseWheelListener red = e -> scrollPrincipal.dispatchEvent(SwingUtilities.convertMouseEvent(e.getComponent(), e, scrollPrincipal));
         tabla.addMouseWheelListener(red);
         scrollTabla.addMouseWheelListener(red);
