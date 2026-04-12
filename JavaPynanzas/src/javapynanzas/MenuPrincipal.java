@@ -92,7 +92,7 @@ public class MenuPrincipal extends JFrame {
         contenedor.add(lblTitulo);
 
         lblGlobo = new GloboTexto();
-        lblGlobo.setBounds(60, 110, 420, 85); 
+        lblGlobo.setBounds(24, 110, 420, 85); 
         contenedor.add(lblGlobo);
 
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
