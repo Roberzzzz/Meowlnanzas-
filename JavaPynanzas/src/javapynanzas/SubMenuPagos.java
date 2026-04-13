@@ -131,6 +131,13 @@ public class SubMenuPagos extends JFrame {
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 22));
         lblTitulo.setBounds(0, 40, 600, 30);
         panelPrincipal.add(lblTitulo);
+        
+        JLabel lblakkkkuinafeuioucy7ertsc2qu09 = new JLabel("Ingrese la cedula del Alumno", SwingConstants.CENTER);
+        lblakkkkuinafeuioucy7ertsc2qu09.setForeground(new Color(255, 204, 150));
+        lblakkkkuinafeuioucy7ertsc2qu09.setFont(new Font("Arial", Font.BOLD, 12));
+        lblakkkkuinafeuioucy7ertsc2qu09.setBounds(0, 80, 600, 30);
+        panelPrincipal.add(lblakkkkuinafeuioucy7ertsc2qu09);
+        
 
         txtCedula = new JTextField();
         txtCedula.setBounds(150, 130, 300, 35);
@@ -164,7 +171,7 @@ public class SubMenuPagos extends JFrame {
             if (rs.next()) {
                 mostrarFormularioPago(rs);
             } else {
-                JOptionPane.showMessageDialog(this, "No hay inscripciones pendientes.", "WARNING", JOptionPane.PLAIN_MESSAGE, iconoWarning);
+                JOptionPane.showMessageDialog(this, "No se encontró el alumno o no tiene inscripciones con saldo pendiente.", "Sin resultados", JOptionPane.PLAIN_MESSAGE, iconoError);
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.PLAIN_MESSAGE, iconoError);
