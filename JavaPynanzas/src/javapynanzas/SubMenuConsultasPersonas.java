@@ -3,6 +3,8 @@ package javapynanzas;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -14,7 +16,9 @@ import java.util.Map;
 
 public class SubMenuConsultasPersonas extends JFrame {
 
-    private JTextField txtCedula;
+    private JTextField txtDato;
+    private JComboBox<String> cbFiltro;
+    private JComboBox<String> cbResultados;
     private JPanel pnlContenedorTablas;
     private JLabel lblNombrePersona;
     private JTextArea txtSaldoPendiente;
@@ -52,7 +56,7 @@ public class SubMenuConsultasPersonas extends JFrame {
 
         PanelFondo contenedorPrincipal = new PanelFondo();
 
-        JPanel pnlNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
+        JPanel pnlNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 20));
         pnlNorte.setOpaque(false);
         
         JButton btnRegresar = new JButton("← Volver");
@@ -64,20 +68,64 @@ public class SubMenuConsultasPersonas extends JFrame {
             this.dispose();
         });
         
-        JLabel lblCedula = new JLabel("Cédula:");
-        lblCedula.setFont(new Font("Arial", Font.BOLD, 14));
-        lblCedula.setForeground(Color.WHITE);
+        JLabel lblBuscarPor = new JLabel("Buscar Por:");
+        lblBuscarPor.setFont(new Font("Arial", Font.BOLD, 14));
+        lblBuscarPor.setForeground(Color.WHITE);
+
+        cbFiltro = new JComboBox<>(new String[]{"Cédula", "Nombre", "Apellido"});
+        cbFiltro.setBackground(new Color(45, 45, 45));
+        cbFiltro.setForeground(Color.WHITE);
+        cbFiltro.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setBackground(isSelected ? new Color(59, 130, 246) : new Color(35, 35, 35));
+                setForeground(Color.WHITE);
+                return this;
+            }
+        });
+        cbFiltro.addActionListener(e -> {
+            txtDato.setText("");
+            cbResultados.removeAllItems();
+            pnlContenedorTablas.removeAll();
+            txtSaldoPendiente.setText("");
+            lblNombrePersona.setText("  Busque una persona y presione Consultar");
+            pnlContenedorTablas.revalidate();
+            pnlContenedorTablas.repaint();
+        });
         
-        txtCedula = new JTextField(15);
-        estilizarInput(txtCedula);
+        txtDato = new JTextField(12);
+        estilizarInput(txtDato);
+        txtDato.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                buscarDinamico();
+            }
+        });
+
+        cbResultados = new JComboBox<>();
+        cbResultados.setPreferredSize(new Dimension(200, 30));
+        cbResultados.setBackground(new Color(45, 45, 45));
+        cbResultados.setForeground(Color.WHITE);
+        cbResultados.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setBackground(isSelected ? new Color(59, 130, 246) : new Color(35, 35, 35));
+                setForeground(Color.WHITE);
+                return this;
+            }
+        });
 
         JButton btnBuscar = new JButton("Consultar Estado");
         estilizarBotonPrincipal(btnBuscar);
         btnBuscar.addActionListener(e -> ejecutarConsulta());
         
         pnlNorte.add(btnRegresar);
-        pnlNorte.add(lblCedula);
-        pnlNorte.add(txtCedula);
+        pnlNorte.add(lblBuscarPor);
+        pnlNorte.add(cbFiltro);
+        pnlNorte.add(txtDato);
+        pnlNorte.add(cbResultados);
         pnlNorte.add(btnBuscar);
 
         pnlContenedorTablas = new JPanel();
@@ -90,7 +138,7 @@ public class SubMenuConsultasPersonas extends JFrame {
         scrollPrincipal.setBorder(null);
         scrollPrincipal.getVerticalScrollBar().setUnitIncrement(16);
 
-        lblNombrePersona = new JLabel("  Seleccione un cliente para ver sus cursos", JLabel.LEFT);
+        lblNombrePersona = new JLabel("  Busque una persona y presione Consultar", JLabel.LEFT);
         lblNombrePersona.setFont(new Font("Arial", Font.BOLD, 18));
         lblNombrePersona.setForeground(new Color(59, 130, 246)); 
         lblNombrePersona.setPreferredSize(new Dimension(900, 50)); 
@@ -129,9 +177,37 @@ public class SubMenuConsultasPersonas extends JFrame {
         add(contenedorPrincipal);
     }
 
+    private void buscarDinamico() {
+        String valor = txtDato.getText().trim();
+        if (valor.isEmpty()) {
+            cbResultados.removeAllItems();
+            return;
+        }
+
+        String columna = cbFiltro.getSelectedItem().toString().toLowerCase().replace("é", "e");
+        Conectar conecta = new Conectar();
+        Connection conn = conecta.getConexion();
+        
+        try {
+            String sql = "SELECT cedula, nombre, apellido FROM Personas WHERE UPPER(" + columna + ") LIKE UPPER('" + valor + "%')";
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery(sql);
+            
+            cbResultados.removeAllItems();
+            while (rs.next()) {
+                cbResultados.addItem(rs.getString("cedula") + " - " + rs.getString("nombre") + " " + rs.getString("apellido"));
+            }
+            conn.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     private void ejecutarConsulta() {
-        String cedula = txtCedula.getText().trim();
-        if (cedula.isEmpty()) return;
+        if (cbResultados.getSelectedItem() == null) return;
+        
+        String seleccion = cbResultados.getSelectedItem().toString();
+        String cedula = seleccion.split(" - ")[0];
 
         pnlContenedorTablas.removeAll();
         txtSaldoPendiente.setText("");
@@ -217,7 +293,7 @@ public class SubMenuConsultasPersonas extends JFrame {
 
         JButton btnBarra = new JButton(" ►  CURSO: " + nombreCurso.toUpperCase());
         btnBarra.setContentAreaFilled(false); 
-        btnBarra.setOpaque(false);           
+        btnBarra.setOpaque(false);            
         btnBarra.setHorizontalAlignment(SwingConstants.LEFT);
         btnBarra.setFocusPainted(false);
         btnBarra.setFont(new Font("Arial", Font.BOLD, 13));
@@ -302,15 +378,12 @@ public class SubMenuConsultasPersonas extends JFrame {
             public void paint(Graphics g, JComponent c) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
                 g2.setColor(c.getBackground());
                 g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
-                
                 g2.dispose();
                 super.paint(g, c);
             }
         });
-        
         b.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
     }
 
@@ -328,15 +401,12 @@ public class SubMenuConsultasPersonas extends JFrame {
             public void paint(Graphics g, JComponent c) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
                 g2.setColor(c.getBackground());
                 g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 10, 10);
-                
                 g2.dispose();
                 super.paint(g, c);
             }
         });
-
 
         b.addMouseListener(new MouseAdapter() {
             @Override
@@ -348,9 +418,6 @@ public class SubMenuConsultasPersonas extends JFrame {
                 b.setBackground(new Color(60, 60, 60, 180));
             }
         });
-
         b.setBorder(BorderFactory.createEmptyBorder(7, 15, 7, 15));
     }
-    
-    
 }

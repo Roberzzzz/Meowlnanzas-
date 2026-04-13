@@ -5,6 +5,7 @@ import java.awt.*;
 import java.io.File;
 import java.sql.*;
 import javax.imageio.ImageIO;
+import java.util.ArrayList;
 
 public class SubMenuProfesor extends JFrame {
 
@@ -13,6 +14,7 @@ public class SubMenuProfesor extends JFrame {
     private JButton btnIrReg, btnIrBorrar;
     private JTextField txtNombreReg, txtApellidoReg, txtCedulaReg, txtCedulaBuscar;
     private JLabel lblInfoProfesor;
+    private JComboBox<String> comboResultados;
     private final Color COLOR_ACTIVO = new Color(59, 130, 246);
     private final Color COLOR_INACTIVO = new Color(45, 45, 45);
 
@@ -160,9 +162,9 @@ public class SubMenuProfesor extends JFrame {
         titulo.setBounds(0, 30, 750, 40);
         panelBorrar.add(titulo);
 
-        JLabel lblBusca = new JLabel("Cédula del profesor:");
+        JLabel lblBusca = new JLabel("Escriba cédula (coincidencias):");
         lblBusca.setForeground(Color.LIGHT_GRAY);
-        lblBusca.setBounds(175, 110, 200, 20);
+        lblBusca.setBounds(175, 110, 250, 20);
         panelBorrar.add(lblBusca);
 
         txtCedulaBuscar = new JTextField();
@@ -179,10 +181,16 @@ public class SubMenuProfesor extends JFrame {
         btnBusca.addActionListener(e -> buscarAccion());
         panelBorrar.add(btnBusca);
 
+        comboResultados = new JComboBox<>();
+        comboResultados.setBounds(175, 210, 400, 40);
+        comboResultados.setBackground(new Color(45, 45, 45));
+        comboResultados.setForeground(Color.WHITE);
+        panelBorrar.add(comboResultados);
+
         PanelTranslucido recuadroInfo = new PanelTranslucido();
-        recuadroInfo.setBounds(175, 210, 400, 120);
+        recuadroInfo.setBounds(175, 270, 400, 80);
         
-        lblInfoProfesor = new JLabel("<html><center>Realice una búsqueda para ver los datos</center></html>", SwingConstants.CENTER);
+        lblInfoProfesor = new JLabel("<html><center>Seleccione un profesor de la lista</center></html>", SwingConstants.CENTER);
         lblInfoProfesor.setForeground(Color.WHITE);
         lblInfoProfesor.setFont(new Font("Arial", Font.PLAIN, 15));
         recuadroInfo.add(lblInfoProfesor, BorderLayout.CENTER);
@@ -214,32 +222,53 @@ public class SubMenuProfesor extends JFrame {
 
     private void buscarAccion() {
         Conectar conecta = new Conectar();
+        comboResultados.removeAllItems();
+        String busqueda = txtCedulaBuscar.getText().trim();
+        
+        if(busqueda.isEmpty()){
+            lblInfoProfesor.setText("Ingrese un valor para buscar.");
+            return;
+        }
+
         try (Connection con = conecta.getConexion(); 
-             PreparedStatement pst = con.prepareStatement("SELECT * FROM profesores WHERE cedula = ?")) {
-            pst.setString(1, txtCedulaBuscar.getText().trim());
+             PreparedStatement pst = con.prepareStatement("SELECT nombre, apellido, cedula FROM profesores WHERE cedula LIKE ?")) {
+            pst.setString(1, "%" + busqueda + "%");
             ResultSet rs = pst.executeQuery();
-            if (rs.next()) {
-                lblInfoProfesor.setText("<html><center><b style='color:#5982f6;'>RESULTADO:</b><br><br>" +
-                        rs.getString("nombre").toUpperCase() + " " + rs.getString("apellido").toUpperCase() + "</center></html>");
+            
+            boolean hayDatos = false;
+            while (rs.next()) {
+                String item = rs.getString("cedula") + " - " + rs.getString("nombre") + " " + rs.getString("apellido");
+                comboResultados.addItem(item);
+                hayDatos = true;
+            }
+
+            if (hayDatos) {
+                lblInfoProfesor.setText("<html><center>Coincidencias encontradas</center></html>");
                 ((JButton)panelBorrar.getClientProperty("btnB")).setEnabled(true);
             } else {
-                lblInfoProfesor.setText("No se encontró el profesor.");
+                lblInfoProfesor.setText("No se encontraron coincidencias.");
                 ((JButton)panelBorrar.getClientProperty("btnB")).setEnabled(false);
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void borrarAccion() {
-        int opt = JOptionPane.showConfirmDialog(this, "¿Desea eliminar este registro?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        String seleccion = (String) comboResultados.getSelectedItem();
+        if (seleccion == null) return;
+        
+        String cedulaAEliminar = seleccion.split(" - ")[0];
+
+        int opt = JOptionPane.showConfirmDialog(this, "¿Desea eliminar el profesor con C.I: " + cedulaAEliminar + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (opt != JOptionPane.YES_OPTION) return;
 
         Conectar conecta = new Conectar();
         try (Connection con = conecta.getConexion(); 
              PreparedStatement pst = con.prepareStatement("DELETE FROM profesores WHERE cedula = ?")) {
-            pst.setString(1, txtCedulaBuscar.getText().trim());
+            pst.setString(1, cedulaAEliminar);
             pst.executeUpdate();
             JOptionPane.showMessageDialog(this, "Eliminado exitosamente.");
             txtCedulaBuscar.setText("");
+            comboResultados.removeAllItems();
             lblInfoProfesor.setText("Búsqueda finalizada.");
             ((JButton)panelBorrar.getClientProperty("btnB")).setEnabled(false);
         } catch (SQLException e) {

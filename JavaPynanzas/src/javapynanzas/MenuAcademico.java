@@ -86,7 +86,7 @@ public class MenuAcademico extends JFrame {
         JLabel lblTitulo = new JLabel("GESTIÓN ACADÉMICA");
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 28));
         lblTitulo.setForeground(new Color(59, 130, 246)); 
-        lblTitulo.setBounds(50, 40, 450, 40); 
+        lblTitulo.setBounds(50, 40, 400, 40); 
         contenedor.add(lblTitulo);
 
         lblGlobo = new GloboTexto();
@@ -166,6 +166,10 @@ public class MenuAcademico extends JFrame {
         btnSalir.setBackground(new Color(150, 0, 0, 100));
         btnSalir.setForeground(Color.WHITE);
         btnSalir.addActionListener(e -> {
+            if (musicaClip != null) {
+                musicaClip.stop();
+            }
+
             new JavaPynanzas().setVisible(true);
             this.dispose();
         });
