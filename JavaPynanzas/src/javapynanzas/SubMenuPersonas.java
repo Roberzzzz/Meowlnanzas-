@@ -40,7 +40,7 @@ public class SubMenuPersonas extends JFrame {
     }
 
     public SubMenuPersonas() {
-        setTitle("Pynanzas - Gestión de Personas");
+        setTitle("Meowlnanzas - Gestión de Personas");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

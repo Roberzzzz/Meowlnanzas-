@@ -48,7 +48,7 @@ public class SubMenuConsultasPersonas extends JFrame {
     }
 
     public SubMenuConsultasPersonas() {
-        setTitle("Pynanzas - Historial Detallado");
+        setTitle("Meowlnanzas - Historial Detallado");
         setSize(950, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

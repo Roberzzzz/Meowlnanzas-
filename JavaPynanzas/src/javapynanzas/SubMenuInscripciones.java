@@ -67,7 +67,7 @@ public class SubMenuInscripciones extends JFrame {
     }
 
     public SubMenuInscripciones() {
-        setTitle("Pynanzas - Inscripción de Alumnos");
+        setTitle("Meowlnanzas - Inscripción de Alumnos");
         setSize(800, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

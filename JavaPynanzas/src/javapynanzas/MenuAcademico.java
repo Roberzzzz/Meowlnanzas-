@@ -75,7 +75,7 @@ public class MenuAcademico extends JFrame {
     }
 
     public MenuAcademico() {
-        setTitle("Pynanzas - Panel Académico");
+        setTitle("Meowlnanzas - Panel Académico");
         setSize(800, 600); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

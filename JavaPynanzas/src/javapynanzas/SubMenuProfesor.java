@@ -60,7 +60,7 @@ public class SubMenuProfesor extends JFrame {
     }
 
     public SubMenuProfesor() {
-        setTitle("Pynanzas - Gestión de Profesores");
+        setTitle("Meowlnanzas - Gestión de Profesores");
         setSize(750, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

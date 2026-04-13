@@ -79,7 +79,7 @@ public class MenuPrincipal extends JFrame {
     }
 
     public MenuPrincipal() {
-        setTitle("Pynanzas - Panel de Selección");
+        setTitle("Meowlnanzas - Panel de Selección");
         setSize(800, 600); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

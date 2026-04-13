@@ -42,7 +42,7 @@ public class JavaPynanzas extends JFrame {
     }
 
     public JavaPynanzas() {
-        setTitle("Pynanzas - Autenticación");
+        setTitle("Meowlnanzas - Autenticación");
         setSize(400, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

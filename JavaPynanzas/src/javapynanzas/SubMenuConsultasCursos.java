@@ -45,7 +45,7 @@ public class SubMenuConsultasCursos extends JFrame {
     }
 
     public SubMenuConsultasCursos() {
-        setTitle("Pynanzas - Consulta por Curso");
+        setTitle("Meowlnanzas - Consulta por Curso");
         setSize(950, 700);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
