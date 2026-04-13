@@ -17,7 +17,7 @@ public class SubMenuConsultasCursos extends JFrame {
     private JPanel pnlContenedorTablas;
     private JLabel lblTituloCurso;
     private JTextArea txtResumenInscritos;
-    private JScrollPane scrollPrincipal;
+    private JScrollPane scrollPrincipal, scrollVentana;
     private boolean hayDeudoresGlobal = false;
     private JComboBox<String> cbFiltroReporte;
     private JButton btnReportePDF;
@@ -120,7 +120,7 @@ public class SubMenuConsultasCursos extends JFrame {
 
     public SubMenuConsultasCursos() {
         setTitle("Meowlnanzas - Consulta por Curso");
-        setSize(950, 700);
+        setSize(1100, 700);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         
@@ -128,6 +128,16 @@ public class SubMenuConsultasCursos extends JFrame {
         setContentPane(fondoMeowl); 
         setLayout(new BorderLayout());
 
+        JScrollPane scrollVentana = new JScrollPane();
+        scrollVentana.setOpaque(false);
+        scrollVentana.getViewport().setOpaque(false);
+        scrollVentana.setBorder(null);
+        
+        scrollVentana.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollVentana.getVerticalScrollBar().setUnitIncrement(25);
+        add(scrollVentana);
+ 
+        
         JPanel pnlNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
             pnlNorte.setOpaque(false); 
 

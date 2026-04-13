@@ -450,7 +450,8 @@ public class SubMenuPersonas extends JFrame {
                 pst.setString(9, txtEmail.getText().trim());
 
                 if (pst.executeUpdate() > 0) {
-                    JOptionPane.showMessageDialog(this, "¡REGISTRO EXITOSO!");
+                    ImageIcon iconoAprobado = cargarIcono("meowl_icon_aprobado.png", 50, 50);
+                    JOptionPane.showMessageDialog(this, "¡REGISTRO EXITOSO!", "REGISTRADO", JOptionPane.PLAIN_MESSAGE, iconoAprobado);
                     limpiarCampos();
                     crearFormulario();
                 }

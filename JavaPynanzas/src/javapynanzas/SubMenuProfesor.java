@@ -291,6 +291,7 @@ public class SubMenuProfesor extends JFrame {
                 return;
             }
 
+            
             int opt = JOptionPane.showConfirmDialog(this, "¿Desea eliminar el profesor con C.I: " + cedulaAEliminar + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
             if (opt != JOptionPane.YES_OPTION) return;
 

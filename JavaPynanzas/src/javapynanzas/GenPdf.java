@@ -25,6 +25,85 @@ import java.util.ArrayList;
 
 public class GenPdf {
     
+    public static void generarReportePersona(String nombrePersona, String cedula, String filtro, java.util.List<Object[]> cursosData) {
+        String ruta = "Reportes/Personas/" + cedula;
+        File dir = new File(ruta);
+        if (!dir.exists()) dir.mkdirs();
+
+        String nombreArchivo = ruta + "/Historial_" + filtro + ".pdf";
+        Document documento = new Document(PageSize.LETTER);
+
+        try {
+            PdfWriter.getInstance(documento, new FileOutputStream(nombreArchivo));
+            documento.open();
+
+            Font fTitulo = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
+            Font fSub = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+            Font fNormal = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
+            Font fBlanca = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.WHITE);
+
+            // Encabezado
+            Paragraph pyn = new Paragraph("Meowlnanzas - Sistema de Control de Pagos", fNormal);
+            documento.add(pyn);
+            documento.add(new Paragraph("Fecha de reporte: " + new java.util.Date().toString(), fNormal));
+            documento.add(new Paragraph(" "));
+
+            Paragraph titulo = new Paragraph("ESTADO DE CUENTA INDIVIDUAL", fTitulo);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            documento.add(titulo);
+            documento.add(new Paragraph(" "));
+
+            // Datos Personales
+            documento.add(new Paragraph("Estudiante: " + nombrePersona, fSub));
+            documento.add(new Paragraph("Cédula de Identidad: " + cedula, fNormal));
+            documento.add(new Paragraph("Filtro aplicado: " + filtro, fNormal));
+            documento.add(new Paragraph(" "));
+            documento.add(new Chunk(new com.itextpdf.text.pdf.draw.LineSeparator()));
+            documento.add(new Paragraph(" "));
+
+            for (Object[] curso : cursosData) {
+                String nombreCurso = (String) curso[0];
+                String saldoCurso = (String) curso[1];
+                java.util.List<Object[]> pagos = (java.util.List<Object[]>) curso[2];
+
+                documento.add(new Paragraph("CURSO: " + nombreCurso.toUpperCase(), fSub));
+                documento.add(new Paragraph("Estado de saldo: " + saldoCurso, fNormal));
+                documento.add(new Paragraph(" "));
+
+                PdfPTable tabla = new PdfPTable(new float[]{20, 20, 15, 25, 20});
+                tabla.setWidthPercentage(100);
+
+                String[] headers = {"Fecha", "Monto", "Cuota", "Método", "Banco"};
+                for (String h : headers) {
+                    PdfPCell cell = new PdfPCell(new Phrase(h, fBlanca));
+                    cell.setBackgroundColor(new BaseColor(59, 130, 246));
+                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    cell.setPadding(5);
+                    tabla.addCell(cell);
+                }
+
+                for (Object[] pago : pagos) {
+                    tabla.addCell(new Phrase(pago[0].toString(), fNormal));
+                    tabla.addCell(new Phrase(pago[1].toString(), fNormal));
+                    tabla.addCell(new Phrase(pago[2].toString(), fNormal));
+                    tabla.addCell(new Phrase(pago[3].toString(), fNormal));
+                    tabla.addCell(new Phrase(pago[4].toString(), fNormal));
+                }
+
+                documento.add(tabla);
+                documento.add(new Paragraph(" "));
+                documento.add(new Chunk(new com.itextpdf.text.pdf.draw.LineSeparator(0.5f, 100, BaseColor.LIGHT_GRAY, Element.ALIGN_CENTER, 0)));
+                documento.add(new Paragraph(" "));
+            }
+
+            documento.close();
+            Desktop.getDesktop().open(new File(nombreArchivo));
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error PDF: " + e.getMessage());
+        }
+    }
+    
     public static void generarReporteCurso(String nombreCurso, String filtro, java.util.List<Object[]> listaEstudiantes, double totalPendienteGlobal) {
         String ruta = "Reportes/Cursos/";
         File dir = new File(ruta);

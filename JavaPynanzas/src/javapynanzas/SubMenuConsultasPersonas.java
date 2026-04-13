@@ -22,6 +22,8 @@ public class SubMenuConsultasPersonas extends JFrame {
     private JPanel pnlContenedorTablas;
     private JLabel lblNombrePersona;
     private JTextArea txtSaldoPendiente;
+    private JComboBox<String> cbFiltroReporte; 
+    private JButton btnReportePDF;
 
     class PanelFondo extends JPanel {
         private Image imagen;
@@ -46,10 +48,86 @@ public class SubMenuConsultasPersonas extends JFrame {
             }
         }
     }
+    
+    private void prepararReportePersona() {
+        if (cbResultados.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione una persona primero.");
+            return;
+        }
 
+        String seleccion = cbResultados.getSelectedItem().toString();
+        String cedula = seleccion.split(" - ")[0];
+        String nombreCompleto = seleccion.split(" - ")[1];
+        String filtro = cbFiltroReporte.getSelectedItem().toString();
+
+        Conectar conecta = new Conectar();
+        Connection conn = conecta.getConexion();
+        java.util.List<Object[]> cursosParaPdf = new java.util.ArrayList<>();
+
+        try {
+            // Query que agrupa por curso todos los pagos de esa persona
+            String sql = "SELECT c.nombre as curso, p.fecha_pago, p.monto_pagado, p.nro_cuota, " +
+                         "p.metodo_pago, b.nombre as banco, i.saldo_restante " +
+                         "FROM Inscripciones i " +
+                         "JOIN Cursos c ON i.id_curso = c.id_curso " +
+                         "JOIN Personas pe ON i.id_persona = pe.id_persona " +
+                         "LEFT JOIN Pagos p ON i.id_inscripcion = p.id_inscripcion " +
+                         "LEFT JOIN Bancos b ON p.id_banco = b.id_banco " +
+                         "WHERE pe.cedula = ? " +
+                         "ORDER BY c.nombre, p.fecha_pago ASC";
+
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, cedula);
+            ResultSet rs = pst.executeQuery();
+
+            String cursoActual = "";
+            java.util.List<Object[]> listaPagos = null;
+
+            while (rs.next()) {
+                String curso = rs.getString("curso");
+                double saldo = rs.getDouble("saldo_restante");
+                boolean esSolvente = saldo <= 0.01;
+
+                // Filtro lógico
+                if (filtro.equals("Solventes") && !esSolvente) continue;
+                if (filtro.equals("Deudores") && esSolvente) continue;
+
+                if (!curso.equals(cursoActual)) {
+                    cursoActual = curso;
+                    listaPagos = new java.util.ArrayList<>();
+                    cursosParaPdf.add(new Object[]{
+                        curso, 
+                        "Bs. " + String.format("%.2f", saldo), 
+                        listaPagos
+                    });
+                }
+
+                if (rs.getString("fecha_pago") != null) {
+                    listaPagos.add(new Object[]{
+                        rs.getString("fecha_pago"),
+                        "Bs. " + rs.getString("monto_pagado"),
+                        rs.getInt("nro_cuota") == 0 ? "Única" : rs.getInt("nro_cuota"),
+                        rs.getString("metodo_pago"),
+                        rs.getString("banco") == null ? "N/A" : rs.getString("banco")
+                    });
+                }
+            }
+            conn.close();
+
+            if (cursosParaPdf.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No se encontraron cursos con el filtro: " + filtro);
+            } else {
+                GenPdf.generarReportePersona(nombreCompleto, cedula, filtro, cursosParaPdf);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
     public SubMenuConsultasPersonas() {
         setTitle("Meowlnanzas - Historial Detallado");
-        setSize(950, 700);
+        setSize(1200, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -94,7 +172,7 @@ public class SubMenuConsultasPersonas extends JFrame {
             pnlContenedorTablas.repaint();
         });
         
-        txtDato = new JTextField(12);
+        txtDato = new JTextField(15); 
         estilizarInput(txtDato);
         txtDato.addKeyListener(new KeyAdapter() {
             @Override
@@ -104,7 +182,7 @@ public class SubMenuConsultasPersonas extends JFrame {
         });
 
         cbResultados = new JComboBox<>();
-        cbResultados.setPreferredSize(new Dimension(200, 30));
+        cbResultados.setPreferredSize(new Dimension(250, 35));
         cbResultados.setBackground(new Color(45, 45, 45));
         cbResultados.setForeground(Color.WHITE);
         cbResultados.setRenderer(new DefaultListCellRenderer() {
@@ -121,12 +199,29 @@ public class SubMenuConsultasPersonas extends JFrame {
         estilizarBotonPrincipal(btnBuscar);
         btnBuscar.addActionListener(e -> ejecutarConsulta());
         
+        JLabel lblFiltroPDF = new JLabel("Filtro PDF:");
+        lblFiltroPDF.setForeground(Color.WHITE);
+        
+        cbFiltroReporte = new JComboBox<>(new String[]{"Todos", "Solventes", "Deudores"});
+        cbFiltroReporte.setBackground(new Color(45, 45, 45));
+        cbFiltroReporte.setForeground(Color.WHITE);
+
+        btnReportePDF = new JButton("Generar PDF");
+        estilizarBotonPrincipal(btnReportePDF);
+        btnReportePDF.setBackground(new Color(46, 139, 87)); 
+        btnReportePDF.addActionListener(e -> prepararReportePersona());
+        
         pnlNorte.add(btnRegresar);
         pnlNorte.add(lblBuscarPor);
         pnlNorte.add(cbFiltro);
         pnlNorte.add(txtDato);
         pnlNorte.add(cbResultados);
         pnlNorte.add(btnBuscar);
+        pnlNorte.revalidate();
+        pnlNorte.repaint();
+        pnlNorte.add(lblFiltroPDF);
+        pnlNorte.add(cbFiltroReporte);
+        pnlNorte.add(btnReportePDF);
 
         pnlContenedorTablas = new JPanel();
         pnlContenedorTablas.setLayout(new BoxLayout(pnlContenedorTablas, BoxLayout.Y_AXIS));
@@ -187,22 +282,30 @@ public class SubMenuConsultasPersonas extends JFrame {
         String columna = cbFiltro.getSelectedItem().toString().toLowerCase().replace("é", "e");
         Conectar conecta = new Conectar();
         Connection conn = conecta.getConexion();
-        
+
         try {
-            String sql = "SELECT cedula, nombre, apellido FROM Personas WHERE UPPER(" + columna + ") LIKE UPPER('" + valor + "%')";
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(sql);
-            
+            // Corregimos la consulta para que sea más robusta
+            String sql = "SELECT cedula, nombre, apellido FROM Personas WHERE UPPER(" + columna + ") LIKE UPPER(?)";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, valor + "%"); // El % permite buscar mientras escribes
+
+            ResultSet rs = ps.executeQuery();
+
             cbResultados.removeAllItems();
             while (rs.next()) {
                 cbResultados.addItem(rs.getString("cedula") + " - " + rs.getString("nombre") + " " + rs.getString("apellido"));
             }
+
+            // Forzar al ComboBox a mostrarse si tiene items
+            if (cbResultados.getItemCount() > 0) {
+                cbResultados.showPopup();
+            }
+
             conn.close();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.err.println("Error en búsqueda: " + e.getMessage());
         }
     }
-
     private void ejecutarConsulta() {
         if (cbResultados.getSelectedItem() == null) return;
         
