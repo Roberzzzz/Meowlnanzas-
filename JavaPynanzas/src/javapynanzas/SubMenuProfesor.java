@@ -65,7 +65,6 @@ public class SubMenuProfesor extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-
         PanelFondo fondo = new PanelFondo();
         setContentPane(fondo);
 
@@ -322,6 +321,7 @@ public class SubMenuProfesor extends JFrame {
             System.err.println("No se pudo cargar el icono: " + nombreArchivo);
             return null;
         }
+<<<<<<< HEAD
     }
     
     private void guardarAccion() {
@@ -335,5 +335,70 @@ public class SubMenuProfesor extends JFrame {
             JOptionPane.showMessageDialog(this, "Registro guardado.");
             txtNombreReg.setText(""); txtApellidoReg.setText(""); txtCedulaReg.setText("");
         } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error al guardar."); }
+=======
+>>>>>>> 8bdc95c029d0d17f8b69171b92f692078488c10d
     }
-}
+    
+   private void guardarAccion() {
+        String nombre = txtNombreReg.getText().trim();
+        String apellido = txtApellidoReg.getText().trim();
+        String cedula = txtCedulaReg.getText().trim();
+
+        if (nombre.isEmpty() || apellido.isEmpty() || cedula.isEmpty()) {
+            mostrarMensajeError("Todos los campos son obligatorios.");
+            return;
+        }
+
+        if (!nombre.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$") || !apellido.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$")) {
+            mostrarMensajeError("El nombre y apellido solo deben contener letras.");
+            return;
+        }
+
+        if (!cedula.matches("\\d+")) {
+            mostrarMensajeError("La cédula debe contener solo números.");
+            return;
+        }
+
+        if (cedula.length() < 6) {
+            mostrarMensajeError("La cédula debe tener al menos 6 dígitos.");
+            return;
+        }
+
+        Conectar conecta = new Conectar();
+        try (Connection con = conecta.getConexion()) {
+
+            String sqlExiste = "SELECT COUNT(*) FROM profesores WHERE cedula = ?";
+            try (PreparedStatement pstCheck = con.prepareStatement(sqlExiste)) {
+                pstCheck.setString(1, cedula);
+                ResultSet rs = pstCheck.executeQuery();
+                if (rs.next() && rs.getInt(1) > 0) {
+                    mostrarMensajeError("Ya existe un profesor registrado con la cédula: " + cedula);
+                    return;
+                }
+            }
+
+            String sqlInsert = "INSERT INTO profesores (nombre, apellido, cedula) VALUES (?,?,?)";
+            try (PreparedStatement pst = con.prepareStatement(sqlInsert)) {
+                pst.setString(1, nombre);
+                pst.setString(2, apellido);
+                pst.setString(3, cedula);
+                pst.executeUpdate();
+
+                ImageIcon iconoAprobado = cargarIcono("meowl_icon_aprobado.png", 50, 50);
+                JOptionPane.showMessageDialog(this, "Profesor registrado exitosamente.", "ÉXITO", JOptionPane.PLAIN_MESSAGE, iconoAprobado);
+
+                txtNombreReg.setText(""); 
+                txtApellidoReg.setText(""); 
+                txtCedulaReg.setText("");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            mostrarMensajeError("Error de base de datos al intentar guardar.");
+        }
+    }
+   
+    private void mostrarMensajeError(String mensaje) {
+        ImageIcon iconoError = cargarIcono("meowl_icon_error.png", 50, 50);
+        JOptionPane.showMessageDialog(this, mensaje, "ERROR DE VALIDACIÓN", JOptionPane.PLAIN_MESSAGE, iconoError);
+    }
+ }

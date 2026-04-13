@@ -80,7 +80,7 @@ public class SubMenuPagos extends JFrame {
     }
 
     public SubMenuPagos() {
-        setTitle("Pynanzas - Registro de Pagos");
+        setTitle("Meowlnanzas - Registro de Pagos");
         setSize(800, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -296,18 +296,38 @@ public class SubMenuPagos extends JFrame {
 
     private void actualizarEtiquetaMonto() {
         if (comboCuotas.getSelectedItem() != null) {
+            ItemCurso item = (ItemCurso) comboCursos.getSelectedItem();
+            
             int q = (int) comboCuotas.getSelectedItem();
-            double t = q * costoCuotaIndividual;
+            int maxC = comboCuotas.getItemCount(); 
+            double t = 0.0;
+            if (q==maxC){
+                t = item.saldoRestante;
+            }else{
+                
+                t = q * costoCuotaIndividual;
+            }
+            
             lblMontoRequerido.setText("Monto total a pagar: Bs. " + String.format(java.util.Locale.US, "%.2f", t));
         }
     }
 
-    private void ejecutarPago() {
+   private void ejecutarPago() {
         ItemCurso item = (ItemCurso) comboCursos.getSelectedItem();
         if (comboCuotas.getSelectedItem() == null) return;
+        
         int cant = (int) comboCuotas.getSelectedItem();
-        double monto = Math.round((cant * costoCuotaIndividual) * 100.0) / 100.0;
+        int maxC = comboCuotas.getItemCount(); 
+        
+        double monto;
+        
+        if (cant == maxC) {
+            monto = item.saldoRestante;
+        } else {
+            monto = Math.round((cant * costoCuotaIndividual) * 100.0) / 100.0;
+        }
         double nSaldo = Math.round((item.saldoRestante - monto) * 100.0) / 100.0;
+        
         if (nSaldo < 0.01) nSaldo = 0.00;
 
         String met = (String) comboMetodo.getSelectedItem();
@@ -319,9 +339,11 @@ public class SubMenuPagos extends JFrame {
 
         Integer idB = (met.equals("transferencia")) ? bSel.id : null;
         Conectar conecta = new Conectar();
+        
         try (Connection con = conecta.getConexion()) {
             con.setAutoCommit(false);
             String ref = met.equals("transferencia") ? generarReferenciaAleatoria() : "No aplica";
+            
             String sqlP = "INSERT INTO Pagos (id_inscripcion, fecha_pago, monto_pagado, id_banco, nro_cuota, metodo_pago, observaciones, nro_referencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement pstP = con.prepareStatement(sqlP)) {
                 pstP.setInt(1, item.idInscripcion);
@@ -334,17 +356,22 @@ public class SubMenuPagos extends JFrame {
                 pstP.setString(8, ref);
                 pstP.executeUpdate();
             }
+            
+            // Aquí usamos "finalizado" en minúsculas o como lo tengas en tu CHECK de SQL
             String sqlI = "UPDATE Inscripciones SET saldo_restante = ?, estado = ? WHERE id_inscripcion = ?";
             try (PreparedStatement pstI = con.prepareStatement(sqlI)) {
                 pstI.setDouble(1, nSaldo);
-                pstI.setString(2, (nSaldo <= 0.05) ? "finalizado" : "activa");
+                pstI.setString(2, (nSaldo <= 0) ? "finalizado" : "activa");
                 pstI.setInt(3, item.idInscripcion);
                 pstI.executeUpdate();
             }
+            
             con.commit();
+            
             String bNm = (idB != null) ? bSel.nombre : "No aplica";
             GenPdf.generarReciboPago(item.idInscripcion, String.valueOf(cant), lblNombreAlumno.getText(), txtCedula.getText(), item.nombreCurso, met, monto, met, bNm, java.time.LocalDate.now().toString(), txtObservaciones.getText(), ref);
             mostrarResumenFinal(cant, monto, nSaldo);
+            
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "ERROR", JOptionPane.PLAIN_MESSAGE, iconoError);
         }

@@ -48,7 +48,7 @@ public class SubMenuConsultasPersonas extends JFrame {
     }
 
     public SubMenuConsultasPersonas() {
-        setTitle("Pynanzas - Historial Detallado");
+        setTitle("Meowlnanzas - Historial Detallado");
         setSize(950, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -317,12 +317,18 @@ public class SubMenuConsultasPersonas extends JFrame {
         });
         
         String[] col = {"Fecha", "Monto", "Cuota", "Método", "Banco", "Saldo"};
-        DefaultTableModel mod = new DefaultTableModel(col, 0);
+        DefaultTableModel mod = new DefaultTableModel(col, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+
         for (Object[] d : datos) mod.addRow(d);
 
         JTable tabla = new JTable(mod);
         configurarTabla(tabla);
-
+            
         JScrollPane scrollTabla = new JScrollPane(tabla);
         scrollTabla.getViewport().setBackground(new Color(30, 30, 30)); 
         scrollTabla.setBorder(BorderFactory.createLineBorder(new Color(80, 80, 80)));

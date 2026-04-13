@@ -39,7 +39,7 @@ public class SubMenuCursos extends JFrame {
     }
 
     public SubMenuCursos() {
-        setTitle("Pynanzas - Gestión de Cursos");
+        setTitle("Meowlnanzas - Gestión de Cursos");
         setSize(800, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

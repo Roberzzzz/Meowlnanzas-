@@ -34,7 +34,7 @@ public class MenuRegistro extends JFrame {
     }
 
     public MenuRegistro() {
-        setTitle("Pynanzas - Registro");
+        setTitle("Meowlnanzas - Registro");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
         setLocationRelativeTo(null);
@@ -78,7 +78,7 @@ public class MenuRegistro extends JFrame {
             this.dispose();
         });
         contenedor.add(btnPago);
-
+        
         JButton btnVolver = new JButton("← Volver al Menú Principal");
         btnVolver.setBounds(275, 450, 250, 45); 
         btnVolver.setBackground(new Color(45, 45, 45));

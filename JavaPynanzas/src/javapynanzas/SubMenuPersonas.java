@@ -41,8 +41,13 @@ public class SubMenuPersonas extends JFrame {
     }
 
     public SubMenuPersonas() {
+<<<<<<< HEAD
         setTitle("Pynanzas - Gestión de Personas");
         setSize(800, 700);
+=======
+        setTitle("Meowlnanzas - Gestión de Personas");
+        setSize(800, 600);
+>>>>>>> 8bdc95c029d0d17f8b69171b92f692078488c10d
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -434,6 +439,8 @@ public class SubMenuPersonas extends JFrame {
                     return;
                 }
             }
+
+          
 
             try (java.sql.PreparedStatement pst = con.prepareStatement(sqlInsert)) {
                 pst.setString(1, txtNombre.getText().trim());
