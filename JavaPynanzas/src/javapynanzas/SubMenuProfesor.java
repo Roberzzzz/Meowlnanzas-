@@ -60,7 +60,7 @@ public class SubMenuProfesor extends JFrame {
     }
 
     public SubMenuProfesor() {
-        setTitle("Meowlnanzas - Gestión de Profesores");
+        setTitle("Pynanzas - Gestión de Profesores");
         setSize(750, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -184,6 +184,7 @@ public class SubMenuProfesor extends JFrame {
         comboResultados.setBounds(175, 210, 400, 40);
         comboResultados.setBackground(new Color(45, 45, 45));
         comboResultados.setForeground(Color.WHITE);
+        comboResultados.addActionListener(e -> verificarCargaAcademica());
         panelBorrar.add(comboResultados);
 
         PanelTranslucido recuadroInfo = new PanelTranslucido();
@@ -244,9 +245,29 @@ public class SubMenuProfesor extends JFrame {
             if (hayDatos) {
                 lblInfoProfesor.setText("<html><center>Coincidencias encontradas</center></html>");
                 ((JButton)panelBorrar.getClientProperty("btnB")).setEnabled(true);
+                verificarCargaAcademica();
             } else {
                 lblInfoProfesor.setText("No se encontraron coincidencias.");
                 ((JButton)panelBorrar.getClientProperty("btnB")).setEnabled(false);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void verificarCargaAcademica() {
+        String seleccion = (String) comboResultados.getSelectedItem();
+        if (seleccion == null) return;
+        String cedula = seleccion.split(" - ")[0];
+
+        Conectar conecta = new Conectar();
+        try (Connection con = conecta.getConexion()) {
+            String sqlCheck = "SELECT COUNT(*) FROM cursos c JOIN profesores p ON c.id_profesor = p.id_profesor WHERE p.cedula = ?";
+            PreparedStatement pst = con.prepareStatement(sqlCheck);
+            pst.setString(1, cedula);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                lblInfoProfesor.setText("<html><center>Coincidencias encontradas.<br>Este profesor ya tiene un curso asignado.</center></html>");
+            } else {
+                lblInfoProfesor.setText("<html><center>Coincidencias encontradas</center></html>");
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
@@ -256,35 +277,112 @@ public class SubMenuProfesor extends JFrame {
         if (seleccion == null) return;
         
         String cedulaAEliminar = seleccion.split(" - ")[0];
-
-        int opt = JOptionPane.showConfirmDialog(this, "¿Desea eliminar el profesor con C.I: " + cedulaAEliminar + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (opt != JOptionPane.YES_OPTION) return;
-
         Conectar conecta = new Conectar();
-        try (Connection con = conecta.getConexion(); 
-             PreparedStatement pst = con.prepareStatement("DELETE FROM profesores WHERE cedula = ?")) {
-            pst.setString(1, cedulaAEliminar);
-            pst.executeUpdate();
-            JOptionPane.showMessageDialog(this, "Eliminado exitosamente.");
-            txtCedulaBuscar.setText("");
-            comboResultados.removeAllItems();
-            lblInfoProfesor.setText("Búsqueda finalizada.");
-            ((JButton)panelBorrar.getClientProperty("btnB")).setEnabled(false);
+
+        try (Connection con = conecta.getConexion()) {
+            String sqlCheck = "SELECT COUNT(*) FROM cursos c JOIN profesores p ON c.id_profesor = p.id_profesor WHERE p.cedula = ?";
+            PreparedStatement pstCheck = con.prepareStatement(sqlCheck);
+            pstCheck.setString(1, cedulaAEliminar);
+            ResultSet rsCheck = pstCheck.executeQuery();
+            
+            if (rsCheck.next() && rsCheck.getInt(1) > 0) {
+                ImageIcon iconoError = cargarIcono("meowl_icon_error.png", 50, 50);
+                JOptionPane.showMessageDialog(this, "Este profesor no puede ser eliminado, pues ya está asignado a un curso", "ERROR", JOptionPane.PLAIN_MESSAGE, iconoError);
+                return;
+            }
+
+            int opt = JOptionPane.showConfirmDialog(this, "¿Desea eliminar el profesor con C.I: " + cedulaAEliminar + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+            if (opt != JOptionPane.YES_OPTION) return;
+
+            try (PreparedStatement pst = con.prepareStatement("DELETE FROM profesores WHERE cedula = ?")) {
+                pst.setString(1, cedulaAEliminar);
+                pst.executeUpdate();
+                ImageIcon iconoAprobado = cargarIcono("meowl_icon_aprobado.png", 50,50);
+                JOptionPane.showMessageDialog(this, "Eliminado exitosamente.", "ELIMINACIÓN COMPLETADA", JOptionPane.PLAIN_MESSAGE, iconoAprobado);
+                txtCedulaBuscar.setText("");
+                comboResultados.removeAllItems();
+                lblInfoProfesor.setText("Búsqueda finalizada.");
+                ((JButton)panelBorrar.getClientProperty("btnB")).setEnabled(false);
+            }
         } catch (SQLException e) {
-            if (e.getSQLState().equals("23503")) JOptionPane.showMessageDialog(this, "No se puede borrar: Relacionado a un curso.");
+            ImageIcon iconoError = cargarIcono("meowl_icon_error.png", 50, 50);
+            if (e.getSQLState().equals("23503")){
+                JOptionPane.showMessageDialog(this, "Este profesor no puede ser eliminado, pues ya está asignado a un curso", "ERROR", JOptionPane.PLAIN_MESSAGE, iconoError);
+            }
         }
     }
 
-    private void guardarAccion() {
-        Conectar conecta = new Conectar();
-        try (Connection con = conecta.getConexion(); 
-             PreparedStatement pst = con.prepareStatement("INSERT INTO profesores (nombre, apellido, cedula) VALUES (?,?,?)")) {
-            pst.setString(1, txtNombreReg.getText().trim());
-            pst.setString(2, txtApellidoReg.getText().trim());
-            pst.setString(3, txtCedulaReg.getText().trim());
-            pst.executeUpdate();
-            JOptionPane.showMessageDialog(this, "Registro guardado.");
-            txtNombreReg.setText(""); txtApellidoReg.setText(""); txtCedulaReg.setText("");
-        } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error al guardar."); }
+    private ImageIcon cargarIcono(String nombreArchivo, int ancho, int alto) {
+        try {
+            ImageIcon iconoOriginal = new ImageIcon("resources/" + nombreArchivo);
+            Image imgEscalada = iconoOriginal.getImage().getScaledInstance(ancho, alto, Image.SCALE_SMOOTH);
+            return new ImageIcon(imgEscalada);
+        } catch (Exception e) {
+            System.err.println("No se pudo cargar el icono: " + nombreArchivo);
+            return null;
+        }
     }
-}
+    
+   private void guardarAccion() {
+        String nombre = txtNombreReg.getText().trim();
+        String apellido = txtApellidoReg.getText().trim();
+        String cedula = txtCedulaReg.getText().trim();
+
+        if (nombre.isEmpty() || apellido.isEmpty() || cedula.isEmpty()) {
+            mostrarMensajeError("Todos los campos son obligatorios.");
+            return;
+        }
+
+        if (!nombre.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$") || !apellido.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$")) {
+            mostrarMensajeError("El nombre y apellido solo deben contener letras.");
+            return;
+        }
+
+        if (!cedula.matches("\\d+")) {
+            mostrarMensajeError("La cédula debe contener solo números.");
+            return;
+        }
+
+        if (cedula.length() < 6) {
+            mostrarMensajeError("La cédula debe tener al menos 6 dígitos.");
+            return;
+        }
+
+        Conectar conecta = new Conectar();
+        try (Connection con = conecta.getConexion()) {
+
+            String sqlExiste = "SELECT COUNT(*) FROM profesores WHERE cedula = ?";
+            try (PreparedStatement pstCheck = con.prepareStatement(sqlExiste)) {
+                pstCheck.setString(1, cedula);
+                ResultSet rs = pstCheck.executeQuery();
+                if (rs.next() && rs.getInt(1) > 0) {
+                    mostrarMensajeError("Ya existe un profesor registrado con la cédula: " + cedula);
+                    return;
+                }
+            }
+
+            String sqlInsert = "INSERT INTO profesores (nombre, apellido, cedula) VALUES (?,?,?)";
+            try (PreparedStatement pst = con.prepareStatement(sqlInsert)) {
+                pst.setString(1, nombre);
+                pst.setString(2, apellido);
+                pst.setString(3, cedula);
+                pst.executeUpdate();
+
+                ImageIcon iconoAprobado = cargarIcono("meowl_icon_aprobado.png", 50, 50);
+                JOptionPane.showMessageDialog(this, "Profesor registrado exitosamente.", "ÉXITO", JOptionPane.PLAIN_MESSAGE, iconoAprobado);
+
+                txtNombreReg.setText(""); 
+                txtApellidoReg.setText(""); 
+                txtCedulaReg.setText("");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            mostrarMensajeError("Error de base de datos al intentar guardar.");
+        }
+    }
+   
+    private void mostrarMensajeError(String mensaje) {
+        ImageIcon iconoError = cargarIcono("meowl_icon_error.png", 50, 50);
+        JOptionPane.showMessageDialog(this, mensaje, "ERROR DE VALIDACIÓN", JOptionPane.PLAIN_MESSAGE, iconoError);
+    }
+ }

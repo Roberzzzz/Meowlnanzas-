@@ -90,7 +90,6 @@ public class SubMenuConsultasCursos extends JFrame {
         scrollPrincipal.getViewport().setOpaque(false);
         scrollPrincipal.setBorder(null);
         
-        // --- CORRECCIÓN: SCROLL SOLO VERTICAL ---
         scrollPrincipal.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPrincipal.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPrincipal.getVerticalScrollBar().setUnitIncrement(25);
@@ -235,10 +234,8 @@ public class SubMenuConsultasCursos extends JFrame {
     private void agregarSeccionEstudiante(String nombreEstudiante, ArrayList<Object[]> datos) {
         double saldoRestante = 0;
         if (!datos.isEmpty()) {
-            // Extraer el saldo del último registro (columna 3: Saldo Restante)
             String s = datos.get(datos.size() - 1)[3].toString();
             try {
-                // Limpiamos el texto para validar el color del botón
                 s = s.replace("Bs. ", "").trim();
                 saldoRestante = Double.parseDouble(s);
             } catch (Exception e) {
@@ -248,7 +245,6 @@ public class SubMenuConsultasCursos extends JFrame {
 
         JPanel pnlEst = new JPanel(new BorderLayout());
         pnlEst.setOpaque(false);
-        // --- CORRECCIÓN: Limitar ancho para evitar scroll horizontal ---
         pnlEst.setMaximumSize(new Dimension(880, Integer.MAX_VALUE));
         pnlEst.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -283,14 +279,21 @@ public class SubMenuConsultasCursos extends JFrame {
                 BorderFactory.createEmptyBorder(12, 15, 12, 15)));
 
         String[] col = {"Fecha Pago", "Monto", "Cuota", "Saldo Restante"};
-        DefaultTableModel mod = new DefaultTableModel(col, 0);
+        DefaultTableModel mod = new DefaultTableModel(col, 0) {
+        
+            @Override
+        public boolean isCellEditable(int row, int column) {
+            return false; 
+        }
+      };
+    
         for (Object[] d : datos) mod.addRow(d);
+    
         JTable tabla = new JTable(mod);
         configurarTabla(tabla);
 
         int alturaTotal = (datos.size() * 30) + 32 + 5;
         JScrollPane scrollTabla = new JScrollPane(tabla);
-        // --- CORRECCIÓN: Ancho ajustado ---
         scrollTabla.setPreferredSize(new Dimension(850, alturaTotal));
         scrollTabla.setMaximumSize(new Dimension(850, alturaTotal));
         scrollTabla.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
@@ -323,7 +326,6 @@ public class SubMenuConsultasCursos extends JFrame {
         t.setGridColor(new Color(60, 60, 60));
         t.setRowHeight(30);
         t.setFillsViewportHeight(true);
-        // --- CORRECCIÓN: Auto-ajuste de columnas ---
         t.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         t.getTableHeader().setBackground(new Color(15, 15, 15));
         t.getTableHeader().setForeground(new Color(59, 130, 246));
