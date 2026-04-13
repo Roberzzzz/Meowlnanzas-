@@ -79,6 +79,15 @@ public class MenuRegistro extends JFrame {
         });
         contenedor.add(btnPago);
 
+        JButton btnCursos = crearBotonHorizontal("Cursos", 300, yBotones+100, anchoBtn, altoBtn);
+        btnCursos.addActionListener(e -> {
+            SubMenuCursos ventanaCursos = new SubMenuCursos();
+            ventanaCursos.setLocation(this.getLocation());
+            ventanaCursos.setVisible(true);
+            this.dispose();
+        });
+        contenedor.add(btnCursos);
+        
         JButton btnVolver = new JButton("← Volver al Menú Principal");
         btnVolver.setBounds(275, 450, 250, 45); 
         btnVolver.setBackground(new Color(45, 45, 45));
