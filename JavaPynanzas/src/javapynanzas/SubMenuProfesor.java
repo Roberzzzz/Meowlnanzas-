@@ -321,22 +321,6 @@ public class SubMenuProfesor extends JFrame {
             System.err.println("No se pudo cargar el icono: " + nombreArchivo);
             return null;
         }
-<<<<<<< HEAD
-    }
-    
-    private void guardarAccion() {
-        Conectar conecta = new Conectar();
-        try (Connection con = conecta.getConexion(); 
-             PreparedStatement pst = con.prepareStatement("INSERT INTO profesores (nombre, apellido, cedula) VALUES (?,?,?)")) {
-            pst.setString(1, txtNombreReg.getText().trim());
-            pst.setString(2, txtApellidoReg.getText().trim());
-            pst.setString(3, txtCedulaReg.getText().trim());
-            pst.executeUpdate();
-            JOptionPane.showMessageDialog(this, "Registro guardado.");
-            txtNombreReg.setText(""); txtApellidoReg.setText(""); txtCedulaReg.setText("");
-        } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error al guardar."); }
-=======
->>>>>>> 8bdc95c029d0d17f8b69171b92f692078488c10d
     }
     
    private void guardarAccion() {
