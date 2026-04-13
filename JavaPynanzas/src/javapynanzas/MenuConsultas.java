@@ -34,7 +34,7 @@ public class MenuConsultas extends JFrame {
     }
 
     public MenuConsultas() {
-        setTitle("Pynanzas - Consultas");
+        setTitle("Meowlnanzas - Consultas");
         setSize(800, 600); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

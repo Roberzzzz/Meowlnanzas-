@@ -80,7 +80,7 @@ public class SubMenuPagos extends JFrame {
     }
 
     public SubMenuPagos() {
-        setTitle("Pynanzas - Registro de Pagos");
+        setTitle("Meowlnanzas - Registro de Pagos");
         setSize(800, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
