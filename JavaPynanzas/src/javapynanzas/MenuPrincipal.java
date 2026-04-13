@@ -2,6 +2,8 @@ package javapynanzas;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;   
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
@@ -22,6 +24,15 @@ public class MenuPrincipal extends JFrame {
     private long posicionMusicaPrincipal = 0; 
     private GloboTexto lblGlobo; 
 
+    private final int[] KONAMI_CODE = {
+        KeyEvent.VK_UP, KeyEvent.VK_UP, 
+        KeyEvent.VK_DOWN, KeyEvent.VK_DOWN, 
+        KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, 
+        KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, 
+        KeyEvent.VK_B, KeyEvent.VK_A
+    };
+    private int indiceKonami = 0;
+
     class GloboTexto extends JLabel {
         public GloboTexto() {
             setOpaque(false);
@@ -35,20 +46,16 @@ public class MenuPrincipal extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
             g2.setColor(new Color(255, 255, 255, 230));
             g2.fillRoundRect(0, 0, getWidth() - 20, getHeight() - 1, 20, 20);
-            
             Path2D.Double pointer = new Path2D.Double();
             pointer.moveTo(getWidth() - 20, 20);   
             pointer.lineTo(getWidth(), 10);        
             pointer.lineTo(getWidth() - 20, 40);   
             pointer.closePath();
             g2.fill(pointer);
-
             g2.setColor(new Color(150, 150, 150));
             g2.drawRoundRect(0, 0, getWidth() - 20, getHeight() - 1, 20, 20);
-            
             g2.dispose();
             super.paintComponent(g);
         }
@@ -86,6 +93,22 @@ public class MenuPrincipal extends JFrame {
         setResizable(false);
 
         cargarAudioSpin("meowl_spin_music.wav");
+
+        this.setFocusable(true);
+        this.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KONAMI_CODE[indiceKonami]) {
+                    indiceKonami++;
+                    if (indiceKonami == KONAMI_CODE.length) {
+                        abrirCreditosSecretos();
+                        indiceKonami = 0;
+                    }
+                } else {
+                    indiceKonami = 0;
+                }
+            }
+        });
 
         PanelFondo contenedor = new PanelFondo();
         
@@ -141,6 +164,7 @@ public class MenuPrincipal extends JFrame {
             @Override
             public void mouseEntered(MouseEvent e) {
                 mostrarMensaje("Aquí puedes gestionar las inscripciones, pagos y cursos :3");
+                requestFocusInWindow(); 
             }
             @Override
             public void mouseExited(MouseEvent e) {
@@ -164,6 +188,7 @@ public class MenuPrincipal extends JFrame {
             @Override
             public void mouseEntered(MouseEvent e) {
                 mostrarMensaje("Aquí puedes consultar la solvencia de los estudiantes");
+                requestFocusInWindow(); 
             }
             @Override
             public void mouseExited(MouseEvent e) {
@@ -178,12 +203,7 @@ public class MenuPrincipal extends JFrame {
         btnSalir.setForeground(Color.WHITE);
 
         btnSalir.addActionListener(e -> {
-            if (musicaClip != null) {
-                musicaClip.stop();
-            }
-            if (musicaSpinClip != null) {
-                musicaSpinClip.stop();
-            }
+            detenerMusicaTotal();
             new JavaPynanzas().setVisible(true);
             this.dispose();
         });
@@ -191,6 +211,30 @@ public class MenuPrincipal extends JFrame {
 
         add(contenedor);
         reproducirMusica("meowl_music.wav"); 
+    }
+
+    private void abrirCreditosSecretos() {
+        if (musicaClip != null) musicaClip.stop();
+        if (musicaSpinClip != null) musicaSpinClip.stop();
+        
+
+        FrameSecretoProhibidoLeerPorFavorxd creditos = new FrameSecretoProhibidoLeerPorFavorxd(musicaClip);
+        creditos.setVisible(true);
+        
+        creditos.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent windowEvent) {
+                if (musicaClip != null) {
+                    musicaClip.setMicrosecondPosition(posicionMusicaPrincipal);
+                    musicaClip.start();
+                }
+            }
+        });
+    }
+
+    private void detenerMusicaTotal() {
+        if (musicaClip != null) musicaClip.stop();
+        if (musicaSpinClip != null) musicaSpinClip.stop();
     }
 
     private void intercambiarMusicaAlGirar(boolean girando) {
@@ -256,10 +300,7 @@ public class MenuPrincipal extends JFrame {
     }
     
     private void reproducirMusica(String ruta) {
-        if (musicaClip != null && musicaClip.isRunning()) {
-            return;
-        }
-
+        if (musicaClip != null && musicaClip.isRunning()) return;
         try {
             File archivoMusica = new File("resources/" + ruta);
             if (archivoMusica.exists()) {
