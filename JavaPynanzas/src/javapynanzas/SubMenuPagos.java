@@ -301,12 +301,16 @@ public class SubMenuPagos extends JFrame {
             int q = (int) comboCuotas.getSelectedItem();
             int maxC = comboCuotas.getItemCount(); 
             double t = 0.0;
-            if (q==maxC){
-                t = item.saldoRestante;
-            }else{
+            t = q * costoCuotaIndividual;
+            
+            
+            
+            //if (q==maxC){
+            //    t = item.saldoRestante;
+            //}else{
                 
-                t = q * costoCuotaIndividual;
-            }
+              //  t = q * costoCuotaIndividual;
+           // }
             
             lblMontoRequerido.setText("Monto total a pagar: Bs. " + String.format(java.util.Locale.US, "%.2f", t));
         }
