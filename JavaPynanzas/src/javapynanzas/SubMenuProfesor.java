@@ -65,7 +65,6 @@ public class SubMenuProfesor extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-
         PanelFondo fondo = new PanelFondo();
         setContentPane(fondo);
 

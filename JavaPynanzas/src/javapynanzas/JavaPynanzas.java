@@ -153,7 +153,7 @@ public class JavaPynanzas extends JFrame {
                         iconoMeowl
                     );
 
-                    if ("coordinador".equalsIgnoreCase(rol) || "academico".equalsIgnoreCase(rol)) {
+                    if ("coordinador".equalsIgnoreCase(rol) || "operador".equalsIgnoreCase(rol)) {
                         MenuAcademico academico = new MenuAcademico();
                         academico.setVisible(true);
                     } else {

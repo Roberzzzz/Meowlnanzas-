@@ -309,6 +309,8 @@ public class SubMenuPersonas extends JFrame {
                 }
             }
 
+          
+
             try (java.sql.PreparedStatement pst = con.prepareStatement(sqlInsert)) {
                 pst.setString(1, txtNombre.getText().trim());
                 pst.setString(2, txtSegundoNombre.getText().trim());
