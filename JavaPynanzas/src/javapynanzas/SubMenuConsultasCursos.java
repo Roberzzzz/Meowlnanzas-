@@ -19,6 +19,8 @@ public class SubMenuConsultasCursos extends JFrame {
     private JTextArea txtResumenInscritos;
     private JScrollPane scrollPrincipal;
     private boolean hayDeudoresGlobal = false;
+    private JComboBox<String> cbFiltroReporte;
+    private JButton btnReportePDF;
 
     class PanelFondo extends JPanel {
         private Image imagen;
@@ -43,6 +45,78 @@ public class SubMenuConsultasCursos extends JFrame {
             }
         }
     }
+    
+    private void prepararDatosReporte() {
+        String curso = (String) cbCursos.getSelectedItem();
+        String filtro = (String) cbFiltroReporte.getSelectedItem();
+        if (curso == null) return;
+
+        Conectar conecta = new Conectar();
+        Connection conn = conecta.getConexion();
+
+        java.util.List<Object[]> listaParaPdf = new java.util.ArrayList<>();
+        double totalPendienteGlobal = 0;
+
+        try {
+            String sql = "SELECT pe.cedula, pe.nombre || ' ' || pe.apellido as alumno, " +
+                         "p.fecha_pago, p.monto_pagado, p.nro_cuota, p.metodo_pago, " +
+                         "b.nombre as banco, i.saldo_restante " +
+                         "FROM Inscripciones i " +
+                         "JOIN Personas pe ON i.id_persona = pe.id_persona " +
+                         "JOIN Cursos c ON i.id_curso = c.id_curso " +
+                         "LEFT JOIN Pagos p ON i.id_inscripcion = p.id_inscripcion " +
+                         "LEFT JOIN Bancos b ON p.id_banco = b.id_banco " +
+                         "WHERE c.nombre = ? ORDER BY alumno, p.fecha_pago ASC";
+
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, curso);
+            ResultSet rs = pst.executeQuery();
+
+            String cedulaActual = "";
+            java.util.List<Object[]> pagosAlumno = null;
+            Object[] alumnoActual = null;
+
+            while (rs.next()) {
+                String cedula = rs.getString("cedula");
+                double saldo = rs.getDouble("saldo_restante");
+
+                boolean esSolvente = saldo <= 0.01;
+                if (filtro.equals("Solventes") && !esSolvente) continue;
+                if (filtro.equals("Deudores") && esSolvente) continue;
+
+                if (!cedula.equals(cedulaActual)) {
+                    cedulaActual = cedula;
+                    pagosAlumno = new java.util.ArrayList<>();
+                    alumnoActual = new Object[]{
+                        rs.getString("alumno") + " - C.I. " + cedula,
+                        "Bs. " + String.format("%.2f", saldo),
+                        pagosAlumno
+                    };
+                    listaParaPdf.add(alumnoActual);
+                    totalPendienteGlobal += saldo;
+                }
+
+                if (rs.getString("fecha_pago") != null) {
+                    pagosAlumno.add(new Object[]{
+                        rs.getString("fecha_pago"),
+                        "Bs. " + rs.getString("monto_pagado"),
+                        rs.getInt("nro_cuota") == 0 ? "Única" : "Cuota " + rs.getInt("nro_cuota"),
+                        rs.getString("metodo_pago"),
+                        rs.getString("banco") == null ? "No aplica" : rs.getString("banco")
+                    });
+                }
+            }
+            conn.close();
+
+            if (listaParaPdf.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay datos para este filtro.");
+            } else {
+                GenPdf.generarReporteCurso(curso, filtro, listaParaPdf, totalPendienteGlobal);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public SubMenuConsultasCursos() {
         setTitle("Meowlnanzas - Consulta por Curso");
@@ -55,30 +129,42 @@ public class SubMenuConsultasCursos extends JFrame {
         setLayout(new BorderLayout());
 
         JPanel pnlNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        pnlNorte.setOpaque(false); 
+            pnlNorte.setOpaque(false); 
 
-        JButton btnRegresar = new JButton("← Volver");
-        estilizarBotonRegresar(btnRegresar);
-        btnRegresar.addActionListener(e -> {
-            new MenuConsultas().setVisible(true);
-            this.dispose();
-        });
+            JButton btnRegresar = new JButton("← Volver");
+            estilizarBotonRegresar(btnRegresar);
+            btnRegresar.addActionListener(e -> {
+                new MenuConsultas().setVisible(true);
+                this.dispose();
+            });
 
-        JLabel lblCurso = new JLabel("Seleccione Curso:");
-        lblCurso.setForeground(Color.WHITE);
-        
-        cbCursos = new JComboBox<>();
-        llenarComboBoxCursos();
-        estilizarCombo(cbCursos);
+            JLabel lblCurso = new JLabel("Curso:");
+            lblCurso.setForeground(Color.WHITE);
+            cbCursos = new JComboBox<>();
+            llenarComboBoxCursos();
+            estilizarCombo(cbCursos);
 
-        JButton btnConsultar = new JButton("Ver Inscritos");
-        estilizarBotonBusqueda(btnConsultar);
-        btnConsultar.addActionListener(e -> ejecutarConsulta());
+            JLabel lblFiltro = new JLabel("Filtro PDF:");
+            lblFiltro.setForeground(Color.WHITE);
+            cbFiltroReporte = new JComboBox<>(new String[]{"Todos", "Solventes", "Deudores"});
+            estilizarCombo(cbFiltroReporte);
 
-        pnlNorte.add(btnRegresar);
-        pnlNorte.add(lblCurso);
-        pnlNorte.add(cbCursos);
-        pnlNorte.add(btnConsultar);
+            JButton btnConsultar = new JButton("Ver Inscritos");
+            estilizarBotonBusqueda(btnConsultar);
+            btnConsultar.addActionListener(e -> ejecutarConsulta());
+
+            btnReportePDF = new JButton("Generar PDF");
+            estilizarBotonBusqueda(btnReportePDF);
+            btnReportePDF.setBackground(new Color(46, 139, 87)); 
+            btnReportePDF.addActionListener(e -> prepararDatosReporte());
+
+            pnlNorte.add(btnRegresar);
+            pnlNorte.add(lblCurso);
+            pnlNorte.add(cbCursos);
+            pnlNorte.add(btnConsultar);
+            pnlNorte.add(lblFiltro);
+            pnlNorte.add(cbFiltroReporte);
+            pnlNorte.add(btnReportePDF);
 
         pnlContenedorTablas = new JPanel();
         pnlContenedorTablas.setLayout(new BoxLayout(pnlContenedorTablas, BoxLayout.Y_AXIS));
