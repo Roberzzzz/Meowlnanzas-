@@ -57,7 +57,7 @@ public class SubMenuCursos extends JFrame {
         btnVolver.setFocusPainted(false);
         btnVolver.setBorder(null);
         btnVolver.addActionListener(e -> {
-            new MenuRegistro().setVisible(true);
+            new MenuAcademico().setVisible(true);
             this.dispose();
         });
         contenedorFondo.add(btnVolver);

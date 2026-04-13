@@ -49,10 +49,10 @@ public class MenuRegistro extends JFrame {
         contenedor.add(lblTitulo);
 
         int yBotones = 220;
-        int anchoBtn = 170;
+        int anchoBtn = 200; 
         int altoBtn = 80;  
 
-        JButton btnPersona = crearBotonHorizontal("Persona", 40, yBotones, anchoBtn, altoBtn);
+        JButton btnPersona = crearBotonHorizontal("Persona", 75, yBotones, anchoBtn, altoBtn);
         btnPersona.addActionListener(e -> {
             SubMenuPersonas ventanaPersonitas = new SubMenuPersonas();
             ventanaPersonitas.setLocation(this.getLocation());
@@ -61,7 +61,7 @@ public class MenuRegistro extends JFrame {
         });
         contenedor.add(btnPersona);
         
-        JButton btnInscripcion = crearBotonHorizontal("Inscripción", 230, yBotones, anchoBtn, altoBtn);
+        JButton btnInscripcion = crearBotonHorizontal("Inscripción", 300, yBotones, anchoBtn, altoBtn);
         btnInscripcion.addActionListener(e -> {
             SubMenuInscripciones ventanitaInscripciones = new SubMenuInscripciones();
             ventanitaInscripciones.setLocation(this.getLocation());
@@ -70,27 +70,17 @@ public class MenuRegistro extends JFrame {
         });
         contenedor.add(btnInscripcion);
 
-        JButton btnPago = crearBotonHorizontal("Pago", 420, yBotones, anchoBtn, altoBtn);
+        JButton btnPago = crearBotonHorizontal("Pago", 525, yBotones, anchoBtn, altoBtn);
         btnPago.addActionListener(e->{
-            
             SubMenuPagos ventanaPagos = new SubMenuPagos();
             ventanaPagos.setLocation(this.getLocation());
             ventanaPagos.setVisible(true);
             this.dispose();
         });
         contenedor.add(btnPago);
-        
-        JButton btnCursos = crearBotonHorizontal("Cursos", 610, yBotones, anchoBtn, altoBtn);
-        btnCursos.addActionListener(e -> {
-            SubMenuCursos ventanaCursos = new SubMenuCursos();
-            ventanaCursos.setLocation(this.getLocation());
-            ventanaCursos.setVisible(true);
-            this.dispose();
-        });
-        contenedor.add(btnCursos);
 
         JButton btnVolver = new JButton("← Volver al Menú Principal");
-        btnVolver.setBounds(275, 450, 250, 45); // Centrado manualmente (800-250)/2 = 275
+        btnVolver.setBounds(275, 450, 250, 45); 
         btnVolver.setBackground(new Color(45, 45, 45));
         btnVolver.setForeground(Color.WHITE);
         btnVolver.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -115,24 +105,20 @@ public class MenuRegistro extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
                 g2.setColor(getBackground()); 
                 g2.fillRect(0, 0, getWidth(), getHeight());
-
                 g2.dispose();
                 super.paintComponent(g);
             }
         };
 
         btn.setBounds(x, y, ancho, alto); 
-
         btn.setBackground(new Color(60, 60, 60, 180));
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Arial", Font.BOLD, 17));
         btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createLineBorder(new Color(120, 120, 120), 1));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         btn.setContentAreaFilled(false);
         btn.setOpaque(false); 
 

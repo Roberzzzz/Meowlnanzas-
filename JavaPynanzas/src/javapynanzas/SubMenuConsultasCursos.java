@@ -89,6 +89,10 @@ public class SubMenuConsultasCursos extends JFrame {
         scrollPrincipal.setOpaque(false);
         scrollPrincipal.getViewport().setOpaque(false);
         scrollPrincipal.setBorder(null);
+        
+        // --- CORRECCIÓN: SCROLL SOLO VERTICAL ---
+        scrollPrincipal.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPrincipal.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPrincipal.getVerticalScrollBar().setUnitIncrement(25);
 
         lblTituloCurso = new JLabel("  Seleccione un curso para ver el listado", JLabel.LEFT);
@@ -160,31 +164,38 @@ public class SubMenuConsultasCursos extends JFrame {
             Map<String, ArrayList<Object[]>> estudiantesMap = new LinkedHashMap<>();
             int totalInscritos = 0;
 
-            while (rs.next()) {
-                String estudiante = rs.getString("cedula") + " - " + rs.getString("estudiante");
-                double saldo = rs.getDouble("saldo_restante");
-                
-                if (saldo > 0.01) hayDeudoresGlobal = true;
+    while (rs.next()) {
+        String estudiante = rs.getString("cedula") + " - " + rs.getString("estudiante");
 
-                String montoRaw = rs.getString("monto_pagado");
-                String montoFinal = (montoRaw != null) ? 
-                    "Bs. " + String.format(java.util.Locale.US, "%.2f", Double.parseDouble(montoRaw.replace(",", "."))) : "N/A";
+        String montoRaw = rs.getString("monto_pagado");
+        String saldoRaw = rs.getString("saldo_restante");
 
-                String cuota = rs.getInt("nro_cuota") == 0 ? "Única" : String.valueOf(rs.getInt("nro_cuota"));
+        if (montoRaw == null) montoRaw = "0.00";
+        if (saldoRaw == null) saldoRaw = "0.00";
 
-                Object[] fila = {
-                    rs.getString("fecha_pago") != null ? rs.getString("fecha_pago") : "Sin pagos",
-                    montoFinal, 
-                    cuota, 
-                    "Bs. " + String.format(java.util.Locale.US, "%.2f", saldo)
-                };
+        double montoNum = Double.parseDouble(montoRaw.replace(",", "."));
+        double saldoNum = Double.parseDouble(saldoRaw.replace(",", "."));
 
-                if (!estudiantesMap.containsKey(estudiante)) {
-                    estudiantesMap.put(estudiante, new ArrayList<>());
-                    totalInscritos++;
-                }
-                estudiantesMap.get(estudiante).add(fila);
-            }
+        if (saldoNum > 0.01) hayDeudoresGlobal = true;
+
+        String montoFinal = "Bs. " + String.format(java.util.Locale.US, "%.2f", montoNum);
+        String saldoFinal = "Bs. " + String.format(java.util.Locale.US, "%.2f", saldoNum);
+
+        String cuota = rs.getInt("nro_cuota") == 0 ? "Única" : String.valueOf(rs.getInt("nro_cuota"));
+
+        Object[] fila = {
+            rs.getString("fecha_pago") != null ? rs.getString("fecha_pago") : "Sin pagos",
+            montoFinal, 
+            cuota, 
+            saldoFinal
+        };
+
+        if (!estudiantesMap.containsKey(estudiante)) {
+            estudiantesMap.put(estudiante, new ArrayList<>());
+            totalInscritos++;
+        }
+        estudiantesMap.get(estudiante).add(fila);
+    }
 
             for (String est : estudiantesMap.keySet()) {
                 agregarSeccionEstudiante(est, estudiantesMap.get(est));
@@ -224,18 +235,22 @@ public class SubMenuConsultasCursos extends JFrame {
     private void agregarSeccionEstudiante(String nombreEstudiante, ArrayList<Object[]> datos) {
         double saldoRestante = 0;
         if (!datos.isEmpty()) {
-            String s = datos.get(datos.size() - 1)[3].toString()
-                        .replace("Bs. ", "")
-                        .replace(",", ".");
+            // Extraer el saldo del último registro (columna 3: Saldo Restante)
+            String s = datos.get(datos.size() - 1)[3].toString();
             try {
+                // Limpiamos el texto para validar el color del botón
+                s = s.replace("Bs. ", "").trim();
                 saldoRestante = Double.parseDouble(s);
-            } catch (NumberFormatException e) {
+            } catch (Exception e) {
                 saldoRestante = 0;
             }
         }
 
         JPanel pnlEst = new JPanel(new BorderLayout());
         pnlEst.setOpaque(false);
+        // --- CORRECCIÓN: Limitar ancho para evitar scroll horizontal ---
+        pnlEst.setMaximumSize(new Dimension(880, Integer.MAX_VALUE));
+        pnlEst.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JButton btnBarra = new JButton(" ►  " + nombreEstudiante);
         btnBarra.setContentAreaFilled(false);
@@ -275,9 +290,11 @@ public class SubMenuConsultasCursos extends JFrame {
 
         int alturaTotal = (datos.size() * 30) + 32 + 5;
         JScrollPane scrollTabla = new JScrollPane(tabla);
-        scrollTabla.setPreferredSize(new Dimension(900, alturaTotal));
-        scrollTabla.setMaximumSize(new Dimension(Integer.MAX_VALUE, alturaTotal));
+        // --- CORRECCIÓN: Ancho ajustado ---
+        scrollTabla.setPreferredSize(new Dimension(850, alturaTotal));
+        scrollTabla.setMaximumSize(new Dimension(850, alturaTotal));
         scrollTabla.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        scrollTabla.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollTabla.setVisible(false);
         scrollTabla.setOpaque(false);
         scrollTabla.getViewport().setOpaque(false);
@@ -306,6 +323,8 @@ public class SubMenuConsultasCursos extends JFrame {
         t.setGridColor(new Color(60, 60, 60));
         t.setRowHeight(30);
         t.setFillsViewportHeight(true);
+        // --- CORRECCIÓN: Auto-ajuste de columnas ---
+        t.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         t.getTableHeader().setBackground(new Color(15, 15, 15));
         t.getTableHeader().setForeground(new Color(59, 130, 246));
         t.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));

@@ -141,6 +141,9 @@ public class JavaPynanzas extends JFrame {
                 java.sql.ResultSet rs = st.executeQuery(sql);
 
                 if (rs.next()) {
+  
+                    String rol = rs.getString("rol");
+
                     ImageIcon iconoMeowl = cargarIcono("meowl_icon_aprobado.png", 50, 50);
                     JOptionPane.showMessageDialog(
                         this, 
@@ -150,8 +153,14 @@ public class JavaPynanzas extends JFrame {
                         iconoMeowl
                     );
 
-                    MenuPrincipal menu = new MenuPrincipal();
-                    menu.setVisible(true);
+                    if ("coordinador".equalsIgnoreCase(rol) || "academico".equalsIgnoreCase(rol)) {
+                        MenuAcademico academico = new MenuAcademico();
+                        academico.setVisible(true);
+                    } else {
+                        MenuPrincipal menu = new MenuPrincipal();
+                        menu.setVisible(true);
+                    }
+
                     this.dispose(); 
 
                 } else {
@@ -160,6 +169,7 @@ public class JavaPynanzas extends JFrame {
                 con.close();
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());
+                lblMensaje.setText("Error en la conexión.");
             }
         }
     }
